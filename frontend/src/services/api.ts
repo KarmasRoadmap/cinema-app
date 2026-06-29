@@ -20,7 +20,12 @@ async function request<T>(
     throw new Error(`API error ${res.status}: ${errorBody}`);
   }
 
-  return res.json() as Promise<T>;
+  const data = await res.json();
+  // DRF pagination: {count, results: [...]} → unwrap results array
+  if (data && typeof data === "object" && "results" in data && Array.isArray(data.results)) {
+    return data.results as T;
+  }
+  return data as T;
 }
 
 export function getMovies(): Promise<Movie[]> {
