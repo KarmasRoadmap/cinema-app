@@ -1,5 +1,6 @@
 export interface Movie {
   id: number;
+  imdb_id?: string;
   title: string;
   description: string;
   poster_url: string;
@@ -49,4 +50,12 @@ export interface CreateBookingPayload {
   showtime_id: number;
   user_email: string;
   seats: string[];
+}
+
+export interface OMDbSearchResult {
+  imdb_id: string;
+  title: string;
+  year: string;
+  poster_url: string;
+  type: string;
 }

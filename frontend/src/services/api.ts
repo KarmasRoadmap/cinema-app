@@ -31,6 +31,29 @@ export function getMovie(id: number): Promise<Movie> {
   return request<Movie>(`/movies/${id}/`);
 }
 
+// ── OMDb ────────────────────────────────────────────────
+
+export interface OMDbSearchResult {
+  imdb_id: string;
+  title: string;
+  year: string;
+  poster_url: string;
+  type: string;
+}
+
+export function searchOmdb(query: string, page = 1): Promise<OMDbSearchResult[]> {
+  return request<OMDbSearchResult[]>(
+    `/movies/search_omdb/?q=${encodeURIComponent(query)}&page=${page}`
+  );
+}
+
+export function importFromOmdb(imdbId: string): Promise<Movie> {
+  return request<Movie>("/movies/import_omdb/", {
+    method: "POST",
+    body: JSON.stringify({ imdb_id: imdbId }),
+  });
+}
+
 export function getShowtimes(
   movieId?: number,
   date?: string

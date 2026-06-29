@@ -28,6 +28,7 @@ services:
       POSTGRES_DB: cinema_db
       POSTGRES_USER: cinema_user
       POSTGRES_PASSWORD: cinema_pass
+      OMDB_API_KEY: ${OMDB_API_KEY:-285c4880}
     command: >
       sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:

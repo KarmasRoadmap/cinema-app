@@ -80,6 +80,9 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# OMDb
+OMDB_API_KEY = os.environ.get('OMDB_API_KEY', '')
+
 # CORS
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',

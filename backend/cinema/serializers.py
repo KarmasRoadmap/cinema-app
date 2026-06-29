@@ -2,6 +2,17 @@ from rest_framework import serializers
 from .models import Movie, Theater, Showtime, Booking, Seat
 
 
+class MovieSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Movie
+        fields = ['id', 'imdb_id', 'title', 'description', 'poster_url', 'duration_min',
+                  'genre', 'rating', 'release_date', 'is_now_showing']
+
+
+class MovieImportSerializer(serializers.Serializer):
+    imdb_id = serializers.CharField(max_length=20)
+
+
 class SeatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Seat
@@ -105,19 +116,12 @@ class ShowtimeDetailSerializer(serializers.ModelSerializer):
         )
 
 
-class MovieSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Movie
-        fields = ['id', 'title', 'description', 'poster_url', 'duration_min',
-                  'genre', 'rating', 'release_date', 'is_now_showing']
-
-
 class MovieDetailSerializer(serializers.ModelSerializer):
     showtimes = ShowtimeSerializer(many=True, read_only=True)
 
     class Meta:
         model = Movie
-        fields = ['id', 'title', 'description', 'poster_url', 'duration_min',
+        fields = ['id', 'imdb_id', 'title', 'description', 'poster_url', 'duration_min',
                   'genre', 'rating', 'release_date', 'is_now_showing', 'showtimes']
 
 

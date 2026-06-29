@@ -1,175 +1,91 @@
 """
-Management command to seed initial data for Cinema App.
-Run with: python manage.py seed_data
+Comando para poblar la BD con películas reales desde OMDb.
+Uso: python manage.py seed_data
 """
-from datetime import date, datetime, timedelta
-from decimal import Decimal
-
+import sys
+from datetime import datetime, timedelta
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-
 from cinema.models import Movie, Theater, Showtime
+from cinema import omdb
 
 
 class Command(BaseCommand):
-    help = 'Carga datos iniciales: películas, salas y horarios de ejemplo.'
+    help = "Puebla la BD con películas reales de OMDb y datos de prueba."
 
     def handle(self, *args, **options):
-        self.stdout.write('Sembrando datos iniciales...')
+        self.stdout.write("🎬 Importando películas desde OMDb...")
 
-        # ── Salas ────────────────────────────────────────────
-        theaters_data = [
-            {
-                'name': 'Sala 1',
-                'capacity': 100,
-                'seat_layout': {
-                    'rows': 10,
-                    'columns': 10,
-                    'labels': [chr(65 + r) for r in range(10)],  # A-J
-                },
-            },
-            {
-                'name': 'Sala 2',
-                'capacity': 80,
-                'seat_layout': {
-                    'rows': 8,
-                    'columns': 10,
-                    'labels': [chr(65 + r) for r in range(8)],  # A-H
-                },
-            },
-        ]
+        # ── Importar películas populares ─────────────────────────────
+        movies_data = omdb.get_popular_movies()
+        created_movies = []
 
-        theaters = {}
-        for tdata in theaters_data:
-            theater, created = Theater.objects.get_or_create(
-                name=tdata['name'],
+        for data in movies_data:
+            movie, created = Movie.objects.update_or_create(
+                imdb_id=data['imdb_id'],
                 defaults={
-                    'capacity': tdata['capacity'],
-                    'seat_layout': tdata['seat_layout'],
+                    'title': data['title'],
+                    'description': data['description'],
+                    'poster_url': data['poster_url'],
+                    'duration_min': data['duration_min'],
+                    'genre': data['genre'],
+                    'rating': data['rating'],
+                    'release_date': data['release_date'] or datetime.now().date(),
+                    'is_now_showing': True,
                 },
             )
-            theaters[tdata['name']] = theater
-            if created:
-                self.stdout.write(self.style.SUCCESS(f'  ✓ Sala creada: {theater.name}'))
-            else:
-                self.stdout.write(f'  ⓘ Sala ya existe: {theater.name}')
+            action = "✅" if created else "♻️"
+            self.stdout.write(f"  {action} {data['title']} ({data['year']}) — ⭐ {data['rating']}")
+            created_movies.append(movie)
 
-        # ── Películas ────────────────────────────────────────
-        movies_data = [
-            {
-                'title': 'Interstellar',
-                'description': 'Un grupo de exploradores espaciales viaja a través de un agujero de gusano en un intento de asegurar la supervivencia de la humanidad. Dirigida por Christopher Nolan, esta épica de ciencia ficción combina física teórica con drama humano en una odisea interestelar.',
-                'poster_url': 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
-                'duration_min': 169,
-                'genre': 'Ciencia ficción',
-                'rating': 9.0,
-                'release_date': date(2014, 11, 7),
-                'is_now_showing': True,
-            },
-            {
-                'title': 'Inception',
-                'description': 'Dom Cobb es un ladrón especializado en el arte de la extracción: robar secretos valiosos del subconsciente durante el sueño. Su última misión podría redimirlo, pero requiere lo imposible: implantar una idea en lugar de robarla.',
-                'poster_url': 'https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg',
-                'duration_min': 148,
-                'genre': 'Acción',
-                'rating': 8.8,
-                'release_date': date(2010, 7, 16),
-                'is_now_showing': True,
-            },
-            {
-                'title': 'El Padrino',
-                'description': 'La historia de la familia Corleone, una de las más poderosas familias de la mafia en Nueva York. Don Vito Corleone debe ceder el control de su imperio a su hijo Michael, quien se ve arrastrado al mundo del crimen organizado.',
-                'poster_url': 'https://image.tmdb.org/t/p/w500/fhjDlj5pY3LqE4fLzM7gGYjHRwr.jpg',
-                'duration_min': 175,
-                'genre': 'Drama',
-                'rating': 9.2,
-                'release_date': date(1972, 3, 24),
-                'is_now_showing': True,
-            },
-        ]
+        if not created_movies:
+            self.stdout.write(self.style.ERROR("No se pudo importar ninguna película. ¿OMDB_API_KEY configurada?"))
+            sys.exit(1)
 
-        movies = {}
-        for mdata in movies_data:
-            movie, created = Movie.objects.get_or_create(
-                title=mdata['title'],
-                defaults=mdata,
+        # ── Crear salas si no existen ────────────────────────────────
+        theaters = []
+        for name, capacity, rows, cols in [
+            ("Sala 1 — Digital", 100, 10, 10),
+            ("Sala 2 — Premium", 80, 8, 10),
+        ]:
+            theater, _ = Theater.objects.update_or_create(
+                name=name,
+                defaults={
+                    'capacity': capacity,
+                    'seat_layout': {'rows': rows, 'cols': cols},
+                },
             )
-            if not created:
-                # Actualizar campos por si cambiaron
-                for k, v in mdata.items():
-                    setattr(movie, k, v)
-                movie.save()
-                self.stdout.write(f'  ⓘ Película actualizada: {movie.title}')
-            else:
-                self.stdout.write(self.style.SUCCESS(f'  ✓ Película creada: {movie.title}'))
-            movies[mdata['title']] = movie
+            theaters.append(theater)
+            self.stdout.write(f"  🏢 {theater.name} ({theater.capacity} asientos)")
 
-        # ── Horarios ─────────────────────────────────────────
-        # Usamos fechas futuras relativas a hoy para que siempre estén vigentes
-        today = timezone.now().date()
-        # Buscar el próximo viernes como referencia
-        days_until_friday = (4 - today.weekday()) % 7
-        if days_until_friday == 0:
-            days_until_friday = 7  # Si hoy es viernes, usar el siguiente
-        next_friday = today + timedelta(days=days_until_friday)
-        next_saturday = next_friday + timedelta(days=1)
+        # ── Crear horarios ────────────────────────────────────────────
+        today = datetime.now().date()
+        showtimes_created = 0
 
-        showtimes_data = [
-            # Interstellar — Sala 1
-            {
-                'movie': movies['Interstellar'],
-                'theater': theaters['Sala 1'],
-                'start_time': datetime.combine(next_friday, datetime.strptime('16:00', '%H:%M').time()),
-                'price': Decimal('120.00'),
-                'language': 'ES',
-                'format': 'IMAX',
-            },
-            # Interstellar — Sala 2
-            {
-                'movie': movies['Interstellar'],
-                'theater': theaters['Sala 2'],
-                'start_time': datetime.combine(next_friday, datetime.strptime('20:00', '%H:%M').time()),
-                'price': Decimal('100.00'),
-                'language': 'EN',
-                'format': '2D',
-            },
-            # Inception — Sala 1
-            {
-                'movie': movies['Inception'],
-                'theater': theaters['Sala 1'],
-                'start_time': datetime.combine(next_saturday, datetime.strptime('14:00', '%H:%M').time()),
-                'price': Decimal('110.00'),
-                'language': 'ES',
-                'format': '3D',
-            },
-            # Inception — Sala 2
-            {
-                'movie': movies['Inception'],
-                'theater': theaters['Sala 2'],
-                'start_time': datetime.combine(next_saturday, datetime.strptime('18:30', '%H:%M').time()),
-                'price': Decimal('90.00'),
-                'language': 'ES',
-                'format': '2D',
-            },
-        ]
+        for i, movie in enumerate(created_movies[:8]):
+            theater = theaters[i % len(theaters)]
+            for day_offset in range(3):
+                show_date = today + timedelta(days=day_offset)
+                for hour in (15, 19, 21):
+                    start = datetime.combine(show_date, datetime.min.time().replace(hour=hour))
+                    if show_date == today and start <= datetime.now():
+                        continue  # Skip past showtimes today
 
-        tz = timezone.get_current_timezone()
-        for sdata in showtimes_data:
-            # Hacer el datetime timezone-aware
-            naive_dt = sdata['start_time']
-            aware_dt = timezone.make_aware(naive_dt, tz)
-            exists = Showtime.objects.filter(
-                movie=sdata['movie'],
-                theater=sdata['theater'],
-                start_time=aware_dt,
-            ).exists()
-            if not exists:
-                sdata['start_time'] = aware_dt
-                showtime = Showtime.objects.create(**sdata)
-                self.stdout.write(self.style.SUCCESS(
-                    f'  ✓ Horario creado: {showtime}'
-                ))
-            else:
-                self.stdout.write(f'  ⓘ Horario ya existe: {sdata["movie"].title} en {sdata["theater"].name}')
+                    _, created = Showtime.objects.get_or_create(
+                        movie=movie,
+                        theater=theater,
+                        start_time=start,
+                        defaults={
+                            'price': 85.00 if theater.name.endswith("Premium") else 65.00,
+                            'language': 'ES',
+                            'format': 'IMAX' if i < 3 and day_offset == 0 else '2D',
+                        },
+                    )
+                    if created:
+                        showtimes_created += 1
 
-        self.stdout.write(self.style.SUCCESS('\n✅ Datos iniciales cargados correctamente.'))
+        self.stdout.write(f"\n  🕐 {showtimes_created} horarios creados")
+        self.stdout.write(self.style.SUCCESS(
+            f"\n🎉 Listo! {len(created_movies)} películas reales, {len(theaters)} salas, {showtimes_created} funciones.\n"
+            f"   Frontend: http://localhost:5173\n"
+            f"   API:      http://localhost:8000/api/movies/"
+        ))
