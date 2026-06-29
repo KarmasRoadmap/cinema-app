@@ -1,0 +1,503 @@
+/* ===== Cinema App — Custom Dark Theme ===== */
+
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-card: #1a1a2e;
+  --bg-secondary: #16213e;
+  --accent: #e94560;
+  --accent-hover: #c73a52;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+  --border-color: #2a2a4a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ===== Layout ===== */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+}
+
+/* ===== Navbar ===== */
+.navbar {
+  background-color: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.navbar-brand .brand-text {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: var(--accent) !important;
+  text-transform: uppercase;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  transition: color 0.2s;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.active {
+  color: var(--accent);
+}
+
+.navbar-toggler {
+  border-color: var(--border-color);
+}
+
+/* ===== Footer ===== */
+.app-footer {
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
+}
+
+/* ===== Buttons ===== */
+.btn-accent {
+  background-color: var(--accent);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-accent:hover,
+.btn-accent:focus {
+  background-color: var(--accent-hover);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.btn-accent:active {
+  transform: translateY(0);
+}
+
+.btn-accent:disabled {
+  background-color: #5a5a7a;
+  color: #999;
+}
+
+.btn-outline-light {
+  border-color: var(--text-secondary);
+  color: var(--text-secondary);
+}
+
+.btn-outline-light:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+/* ===== Cards ===== */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+/* ===== Hero Banner ===== */
+.hero-banner {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+  border-bottom: 3px solid var(--accent);
+}
+
+.hero-title {
+  color: var(--accent);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+}
+
+.hero-subtitle {
+  color: var(--text-secondary);
+}
+
+.hero-accent-line {
+  width: 80px;
+  height: 3px;
+  background-color: var(--accent);
+  margin: 1.5rem auto 0;
+}
+
+/* ===== Section Titles ===== */
+.section-title {
+  color: var(--text-primary);
+  font-weight: 700;
+  border-left: 4px solid var(--accent);
+  padding-left: 1rem;
+}
+
+/* ===== Movie Card ===== */
+.movie-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.movie-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(233, 69, 96, 0.2);
+  border-color: var(--accent);
+}
+
+.movie-poster {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  background-color: var(--bg-secondary);
+}
+
+.movie-title {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.movie-genre {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.movie-rating {
+  color: #ffc107;
+  font-weight: 600;
+}
+
+.star {
+  color: #ffc107;
+}
+
+/* ===== Movie Detail ===== */
+.movie-detail-poster {
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 8px;
+  background-color: var(--bg-secondary);
+}
+
+.movie-detail-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.movie-detail-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.genre-badge {
+  background-color: var(--accent) !important;
+  color: #fff;
+  font-weight: 600;
+}
+
+.movie-description {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+/* ===== Showtime List ===== */
+.showtime-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.showtime-item {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: border-color 0.2s;
+}
+
+.showtime-item:hover {
+  border-color: var(--accent);
+}
+
+.showtime-time {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.showtime-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.showtime-value {
+  font-weight: 600;
+}
+
+.showtime-price {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.format-badge {
+  background-color: var(--accent) !important;
+  color: #fff;
+}
+
+/* ===== Seat Picker ===== */
+.seat-picker {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.screen-indicator {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.screen-text {
+  display: inline-block;
+  background-color: #fff;
+  color: #000;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 4px;
+  padding: 0.25rem 3rem;
+  clip-path: polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%);
+}
+
+.seat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.seat-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.row-label {
+  width: 24px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.seat {
+  width: 32px;
+  height: 28px;
+  border-radius: 4px 4px 8px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+  border: 1px solid transparent;
+}
+
+.seat.available {
+  background-color: #27ae60;
+  color: #fff;
+  border-color: #219a52;
+}
+
+.seat.available:hover {
+  background-color: #2ecc71;
+  transform: scale(1.1);
+}
+
+.seat.selected {
+  background-color: #f1c40f;
+  color: #000;
+  border-color: #d4ac0d;
+}
+
+.seat.occupied {
+  background-color: #e74c3c;
+  color: #fff;
+  border-color: #c0392b;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.seat-legend {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.legend-seat {
+  width: 24px;
+  height: 20px;
+  border-radius: 3px 3px 6px 6px;
+  cursor: default;
+}
+
+.legend-seat.available {
+  background-color: #27ae60;
+}
+
+.legend-seat.selected {
+  background-color: #f1c40f;
+}
+
+.legend-seat.occupied {
+  background-color: #e74c3c;
+}
+
+.selected-seats-info {
+  text-align: center;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background-color: var(--bg-secondary);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+/* ===== Forms ===== */
+.form-control {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.form-control:focus {
+  background-color: var(--bg-secondary);
+  border-color: var(--accent);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 0.2rem rgba(233, 69, 96, 0.25);
+}
+
+.form-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ===== Alerts ===== */
+.alert-danger {
+  background-color: rgba(231, 76, 60, 0.15);
+  border-color: rgba(231, 76, 60, 0.3);
+  color: #e74c3c;
+}
+
+.alert-secondary {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+/* ===== Badges ===== */
+.badge.bg-success {
+  background-color: #27ae60 !important;
+}
+
+.badge.bg-danger {
+  background-color: #e74c3c !important;
+}
+
+/* ===== Spinner ===== */
+.spinner-border.text-accent {
+  color: var(--accent) !important;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 576px) {
+  .movie-poster {
+    height: 200px;
+  }
+
+  .movie-detail-title {
+    font-size: 1.5rem;
+  }
+
+  .showtime-time {
+    font-size: 1.2rem;
+  }
+
+  .seat {
+    width: 26px;
+    height: 24px;
+    font-size: 0.6rem;
+  }
+
+  .row-label {
+    width: 18px;
+    font-size: 0.7rem;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+}
+
+@media (min-width: 576px) and (max-width: 768px) {
+  .movie-poster {
+    height: 220px;
+  }
+
+  .seat {
+    width: 28px;
+    height: 26px;
+  }
+}
+
+@media (min-width: 768px) {
+  .movie-poster {
+    height: 280px;
+  }
+}
