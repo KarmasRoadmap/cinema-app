@@ -28,12 +28,12 @@ services:
       POSTGRES_DB: cinema_db
       POSTGRES_USER: cinema_user
       POSTGRES_PASSWORD: cinema_pass
-      OMDB_API_KEY: ${OMDB_API_KEY:-285c4880}
+      TMDB_API_KEY: ${TMDB_API_KEY:-246082f547d80b16fe10903507aec49f}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@cinema.com}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
     command: >
-      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      sh -c "python manage.py migrate && python manage.py seed_data && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./backend:/app
     depends_on:

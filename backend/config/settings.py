@@ -88,8 +88,8 @@ AUTH_USER_MODEL = 'users.User'
 # ── JWT ──────────────────────────────────────────────────────────────────
 JWT_ACCESS_TOKEN_LIFETIME_HOURS = 24
 
-# OMDb
-OMDB_API_KEY = os.environ.get('OMDB_API_KEY', '')
+# TMDB
+TMDB_API_KEY = os.environ.get('TMDB_API_KEY', '')
 
 # CORS
 CORS_ALLOWED_ORIGINS = [

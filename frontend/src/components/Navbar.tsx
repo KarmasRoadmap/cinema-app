@@ -1,10 +1,18 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
 
   const isActive = (path: string) =>
     location.pathname === path ? "nav-link active" : "nav-link";
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark">
@@ -25,11 +33,8 @@ export default function Navbar() {
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        <div
-          className="collapse navbar-collapse"
-          id="navbarNav"
-        >
-          <ul className="navbar-nav ms-auto">
+        <div className="collapse navbar-collapse" id="navbarNav">
+          <ul className="navbar-nav ms-auto align-items-lg-center">
             <li className="nav-item">
               <Link className={isActive("/")} to="/">
                 Home
@@ -40,6 +45,38 @@ export default function Navbar() {
                 Mis Reservas
               </Link>
             </li>
+
+            {isAuthenticated && user ? (
+              <>
+                {user.role === "admin" && (
+                  <li className="nav-item">
+                    <Link className={isActive("/admin")} to="/admin">
+                      Admin
+                    </Link>
+                  </li>
+                )}
+                <li className="nav-item">
+                  <span className="nav-link text-secondary small">
+                    {user.email}
+                  </span>
+                </li>
+                <li className="nav-item">
+                  <button
+                    className="nav-link btn btn-link text-secondary border-0"
+                    onClick={handleLogout}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Cerrar sesión
+                  </button>
+                </li>
+              </>
+            ) : (
+              <li className="nav-item">
+                <Link className={isActive("/login")} to="/login">
+                  Iniciar sesión
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
       </div>

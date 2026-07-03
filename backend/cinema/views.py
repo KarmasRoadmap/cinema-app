@@ -17,11 +17,11 @@ from .serializers import (
     BookingCreateSerializer,
     BookingListSerializer,
 )
-from . import omdb
+from . import tmdb
 
 
 class MovieViewSet(viewsets.ReadOnlyModelViewSet):
-    """Películas en cartelera. Búsqueda OMDb en /api/movies/search_omdb/?q=."""
+    """Películas en cartelera. Búsqueda TMDB en /api/movies/search_tmdb/?q=."""
     queryset = Movie.objects.all()
     filter_backends = [SearchFilter]
     search_fields = ['title', 'description', 'genre']
@@ -38,8 +38,8 @@ class MovieViewSet(viewsets.ReadOnlyModelViewSet):
         return MovieSerializer
 
     @action(detail=False, methods=['get'])
-    def search_omdb(self, request):
-        """GET /api/movies/search_omdb/?q=interstellar"""
+    def search_tmdb(self, request):
+        """GET /api/movies/search_tmdb/?q=interstellar"""
         query = request.query_params.get('q', '')
         page = int(request.query_params.get('page', 1))
         if not query:
@@ -47,41 +47,41 @@ class MovieViewSet(viewsets.ReadOnlyModelViewSet):
                 {'error': 'Parámetro ?q= requerido'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        results = omdb.search_omdb(query, page)
+        results = tmdb.search_movies(query, page)
         return Response(results)
 
     @action(detail=False, methods=['post'])
-    def import_omdb(self, request):
-        """POST /api/movies/import_omdb/  {imdb_id: 'tt0816692'}"""
+    def import_tmdb(self, request):
+        """POST /api/movies/import_tmdb/  {tmdb_id: 157336}"""
         serializer = MovieImportSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        imdb_id = serializer.validated_data['imdb_id']
+        tmdb_id = serializer.validated_data['tmdb_id']
 
         # Ya existe?
-        existing = Movie.objects.filter(imdb_id=imdb_id).first()
+        existing = Movie.objects.filter(tmdb_id=tmdb_id).first()
         if existing:
             return Response(
                 MovieSerializer(existing).data,
                 status=status.HTTP_200_OK,
             )
 
-        # Fetch de OMDb
-        data = omdb.get_by_imdb_id(imdb_id)
+        # Fetch de TMDB
+        data = tmdb.get_movie_detail(tmdb_id)
         if not data:
             return Response(
-                {'error': f'Película {imdb_id} no encontrada en OMDb'},
+                {'error': f'Película {tmdb_id} no encontrada en TMDB'},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
         movie = Movie.objects.create(
-            imdb_id=data['imdb_id'],
+            tmdb_id=data['tmdb_id'],
             title=data['title'],
             description=data['description'],
             poster_url=data['poster_url'],
             duration_min=data['duration_min'],
             genre=data['genre'],
-            rating=data['rating'],
+            rating=float(data['rating']),
             release_date=data['release_date'] or datetime.now().date(),
             is_now_showing=True,
         )
@@ -89,6 +89,17 @@ class MovieViewSet(viewsets.ReadOnlyModelViewSet):
             MovieSerializer(movie).data,
             status=status.HTTP_201_CREATED,
         )
+
+    # DEPRECATED: old OMDb endpoints kept for backward compatibility
+    @action(detail=False, methods=['get'])
+    def search_omdb(self, request):
+        """DEPRECATED — redirects to search_tmdb"""
+        return self.search_tmdb(request)
+
+    @action(detail=False, methods=['post'])
+    def import_omdb(self, request):
+        """DEPRECATED — redirects to import_tmdb"""
+        return self.import_tmdb(request)
 
 
 class TheaterViewSet(viewsets.ReadOnlyModelViewSet):

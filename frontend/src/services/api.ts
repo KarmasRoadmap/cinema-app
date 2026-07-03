@@ -1,17 +1,31 @@
-import type { Movie, Showtime, Booking, CreateBookingPayload } from "../types";
+import type { Movie, Showtime, Booking, CreateBookingPayload, TMDBSearchResult, AuthTokens, UserProfile } from "../types";
 
 const BASE_URL: string =
   (import.meta.env.VITE_API_URL as string) || "http://localhost:8000/api";
+
+function getToken(): string | null {
+  try {
+    return localStorage.getItem("access_token");
+  } catch {
+    return null;
+  }
+}
 
 async function request<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const url = `${BASE_URL}${endpoint}`;
   const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     ...options,
   });
 
@@ -28,6 +42,8 @@ async function request<T>(
   return data as T;
 }
 
+// ── Movies ────────────────────────────────────────────────
+
 export function getMovies(): Promise<Movie[]> {
   return request<Movie[]>("/movies/");
 }
@@ -36,28 +52,22 @@ export function getMovie(id: number): Promise<Movie> {
   return request<Movie>(`/movies/${id}/`);
 }
 
-// ── OMDb ────────────────────────────────────────────────
+// ── TMDB ─────────────────────────────────────────────────
 
-export interface OMDbSearchResult {
-  imdb_id: string;
-  title: string;
-  year: string;
-  poster_url: string;
-  type: string;
-}
-
-export function searchOmdb(query: string, page = 1): Promise<OMDbSearchResult[]> {
-  return request<OMDbSearchResult[]>(
-    `/movies/search_omdb/?q=${encodeURIComponent(query)}&page=${page}`
+export function searchTmdb(query: string, page = 1): Promise<TMDBSearchResult[]> {
+  return request<TMDBSearchResult[]>(
+    `/movies/search_tmdb/?q=${encodeURIComponent(query)}&page=${page}`
   );
 }
 
-export function importFromOmdb(imdbId: string): Promise<Movie> {
-  return request<Movie>("/movies/import_omdb/", {
+export function importFromTmdb(tmdbId: number): Promise<Movie> {
+  return request<Movie>("/movies/import_tmdb/", {
     method: "POST",
-    body: JSON.stringify({ imdb_id: imdbId }),
+    body: JSON.stringify({ tmdb_id: tmdbId }),
   });
 }
+
+// ── Showtimes ─────────────────────────────────────────────
 
 export function getShowtimes(
   movieId?: number,
@@ -74,10 +84,11 @@ export function getShowtimeDetail(id: number): Promise<Showtime> {
   return request<Showtime>(`/showtimes/${id}/`);
 }
 
+// ── Bookings ──────────────────────────────────────────────
+
 export function createBooking(
   payload: CreateBookingPayload
 ): Promise<Booking> {
-  // Transform seats: string[] → [{seat_label: "A1"}, ...] (backend format)
   const backendPayload = {
     showtime: payload.showtime_id,
     user_email: payload.user_email,
@@ -91,4 +102,28 @@ export function createBooking(
 
 export function getMyBookings(email: string): Promise<Booking[]> {
   return request<Booking[]>(`/bookings/?user_email=${encodeURIComponent(email)}`);
+}
+
+// ── Auth ──────────────────────────────────────────────────
+
+export function loginApi(email: string, password: string): Promise<AuthTokens> {
+  return request<AuthTokens>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export function registerApi(
+  email: string,
+  password: string,
+  name: string
+): Promise<AuthTokens> {
+  return request<AuthTokens>("/auth/register", {
+    method: "POST",
+    body: JSON.stringify({ email, password, name }),
+  });
+}
+
+export function getMe(): Promise<UserProfile> {
+  return request<UserProfile>("/users/me");
 }

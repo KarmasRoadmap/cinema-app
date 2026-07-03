@@ -1,6 +1,7 @@
 export interface Movie {
   id: number;
   imdb_id?: string;
+  tmdb_id?: number;
   title: string;
   description: string;
   poster_url: string;
@@ -52,10 +53,31 @@ export interface CreateBookingPayload {
   seats: string[];
 }
 
-export interface OMDbSearchResult {
-  imdb_id: string;
+// ── TMDB ──────────────────────────────────────────────────
+
+export interface TMDBSearchResult {
+  tmdb_id: number;
   title: string;
   year: string;
   poster_url: string;
-  type: string;
+  overview: string;
+}
+
+// ── Auth ──────────────────────────────────────────────────
+
+export interface UserProfile {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuthTokens {
+  access: string;
+  refresh: string;
+  user_id: number;
+  email: string;
 }

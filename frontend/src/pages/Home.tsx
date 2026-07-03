@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import MovieCard from "../components/MovieCard";
-import { getMovies, searchOmdb, importFromOmdb } from "../services/api";
-import type { Movie, OMDbSearchResult } from "../types";
+import { getMovies, searchTmdb, importFromTmdb } from "../services/api";
+import type { Movie, TMDBSearchResult } from "../types";
 
 export default function Home() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ── OMDb search state ──────────────────────────────────
-  const [omdbQuery, setOmdbQuery] = useState("");
-  const [omdbResults, setOmdbResults] = useState<OMDbSearchResult[]>([]);
-  const [omdbSearching, setOmdbSearching] = useState(false);
-  const [importing, setImporting] = useState<string | null>(null);
-  const [omdbError, setOmdbError] = useState("");
+  // ── TMDB search state ──────────────────────────────────
+  const [tmdbQuery, setTmdbQuery] = useState("");
+  const [tmdbResults, setTmdbResults] = useState<TMDBSearchResult[]>([]);
+  const [tmdbSearching, setTmdbSearching] = useState(false);
+  const [importing, setImporting] = useState<number | null>(null);
+  const [tmdbError, setTmdbError] = useState("");
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -29,31 +29,31 @@ export default function Home() {
     fetchMovies();
   }, []);
 
-  const handleOmdbSearch = async () => {
-    if (!omdbQuery.trim()) return;
-    setOmdbSearching(true);
-    setOmdbError("");
+  const handleTmdbSearch = async () => {
+    if (!tmdbQuery.trim()) return;
+    setTmdbSearching(true);
+    setTmdbError("");
     try {
-      const results = await searchOmdb(omdbQuery.trim());
-      setOmdbResults(results);
+      const results = await searchTmdb(tmdbQuery.trim());
+      setTmdbResults(results);
       if (results.length === 0) {
-        setOmdbError("No se encontraron resultados en OMDb.");
+        setTmdbError("No se encontraron resultados en TMDB.");
       }
     } catch {
-      setOmdbError("Error al buscar en OMDb. ¿Backend corriendo?");
+      setTmdbError("Error al buscar en TMDB. ¿Backend corriendo?");
     } finally {
-      setOmdbSearching(false);
+      setTmdbSearching(false);
     }
   };
 
-  const handleImport = async (imdbId: string) => {
-    setImporting(imdbId);
+  const handleImport = async (tmdbId: number) => {
+    setImporting(tmdbId);
     try {
-      const movie = await importFromOmdb(imdbId);
+      const movie = await importFromTmdb(tmdbId);
       setMovies((prev) => [movie, ...prev]);
-      setOmdbResults((prev) => prev.filter((r) => r.imdb_id !== imdbId));
+      setTmdbResults((prev) => prev.filter((r) => r.tmdb_id !== tmdbId));
     } catch {
-      setOmdbError("Error al importar película.");
+      setTmdbError("Error al importar película.");
     } finally {
       setImporting(null);
     }
@@ -70,53 +70,53 @@ export default function Home() {
           </p>
           <div className="hero-accent-line"></div>
 
-          {/* ── OMDb Search ─────────────────────────────── */}
+          {/* ── TMDB Search ─────────────────────────────── */}
           <div className="row justify-content-center mt-4">
             <div className="col-12 col-md-8 col-lg-6">
               <div className="input-group input-group-lg">
                 <input
                   type="text"
                   className="form-control bg-dark text-white border-secondary"
-                  placeholder="Buscar película en OMDb..."
-                  value={omdbQuery}
-                  onChange={(e) => setOmdbQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleOmdbSearch()}
+                  placeholder="Buscar película en TMDB..."
+                  value={tmdbQuery}
+                  onChange={(e) => setTmdbQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleTmdbSearch()}
                 />
                 <button
                   className="btn btn-accent"
-                  onClick={handleOmdbSearch}
-                  disabled={omdbSearching}
+                  onClick={handleTmdbSearch}
+                  disabled={tmdbSearching}
                 >
-                  {omdbSearching ? (
+                  {tmdbSearching ? (
                     <span className="spinner-border spinner-border-sm" />
                   ) : (
                     "Buscar"
                   )}
                 </button>
               </div>
-              {omdbError && (
-                <div className="alert alert-danger py-2 mt-2 small">{omdbError}</div>
+              {tmdbError && (
+                <div className="alert alert-danger py-2 mt-2 small">{tmdbError}</div>
               )}
             </div>
           </div>
 
-          {/* ── OMDb Results ──────────────────────────────── */}
-          {omdbResults.length > 0 && (
+          {/* ── TMDB Results ──────────────────────────────── */}
+          {tmdbResults.length > 0 && (
             <div className="row justify-content-center mt-3">
               <div className="col-12 col-md-10 col-lg-8">
                 <div className="card p-3 text-start">
                   <h6 className="text-accent mb-2">
-                    Resultados OMDb — click para agregar a cartelera
+                    Resultados TMDB — click para agregar a cartelera
                   </h6>
                   <div className="d-flex flex-wrap gap-2">
-                    {omdbResults.map((r) => (
+                    {tmdbResults.map((r) => (
                       <button
-                        key={r.imdb_id}
+                        key={r.tmdb_id}
                         className="btn btn-sm btn-outline-light"
-                        disabled={importing === r.imdb_id}
-                        onClick={() => handleImport(r.imdb_id)}
+                        disabled={importing === r.tmdb_id}
+                        onClick={() => handleImport(r.tmdb_id)}
                       >
-                        {importing === r.imdb_id ? (
+                        {importing === r.tmdb_id ? (
                           <span className="spinner-border spinner-border-sm me-1" />
                         ) : (
                           "➕"
@@ -150,7 +150,7 @@ export default function Home() {
 
         {!loading && !error && movies.length === 0 && (
           <div className="alert alert-secondary text-center">
-            No hay películas en cartelera. Usa la búsqueda OMDb para agregar películas.
+            No hay películas en cartelera. Usa la búsqueda TMDB para agregar películas.
           </div>
         )}
 

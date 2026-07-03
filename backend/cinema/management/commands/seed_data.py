@@ -1,34 +1,47 @@
 """
-Comando para poblar la BD con películas reales desde OMDb.
+Comando para poblar la BD con películas reales desde TMDB.
 Uso: python manage.py seed_data
 """
 import sys
 from datetime import datetime, timedelta
 from django.core.management.base import BaseCommand
 from cinema.models import Movie, Theater, Showtime
-from cinema import omdb
+from cinema import tmdb
 
 
 class Command(BaseCommand):
-    help = "Puebla la BD con películas reales de OMDb y datos de prueba."
+    help = "Puebla la BD con películas reales de TMDB y datos de prueba."
 
     def handle(self, *args, **options):
-        self.stdout.write("🎬 Importando películas desde OMDb...")
+        self.stdout.write("🎬 Importando películas desde TMDB...")
 
-        # ── Importar películas populares ─────────────────────────────
-        movies_data = omdb.get_popular_movies()
+        # ── Importar películas en cartelera ─────────────────────────────
+        now_playing = tmdb.get_now_playing()
+
+        # Enriquecer con detalle completo (runtime, genre)
+        movies_data = []
+        for item in now_playing[:12]:
+            detail = tmdb.get_movie_detail(item['tmdb_id'])
+            if detail:
+                movies_data.append(detail)
+            else:
+                movies_data.append(item)
+
+        if not movies_data:
+            self.stdout.write(self.style.ERROR("No se pudo importar ninguna película. ¿TMDB_API_KEY configurada?"))
+            sys.exit(1)
+
         created_movies = []
-
         for data in movies_data:
             movie, created = Movie.objects.update_or_create(
-                imdb_id=data['imdb_id'],
+                tmdb_id=data['tmdb_id'],
                 defaults={
                     'title': data['title'],
                     'description': data['description'],
                     'poster_url': data['poster_url'],
                     'duration_min': data['duration_min'],
                     'genre': data['genre'],
-                    'rating': data['rating'],
+                    'rating': float(data['rating']),
                     'release_date': data['release_date'] or datetime.now().date(),
                     'is_now_showing': True,
                 },
@@ -36,10 +49,6 @@ class Command(BaseCommand):
             action = "✅" if created else "♻️"
             self.stdout.write(f"  {action} {data['title']} ({data['year']}) — ⭐ {data['rating']}")
             created_movies.append(movie)
-
-        if not created_movies:
-            self.stdout.write(self.style.ERROR("No se pudo importar ninguna película. ¿OMDB_API_KEY configurada?"))
-            sys.exit(1)
 
         # ── Crear salas si no existen ────────────────────────────────
         theaters = []

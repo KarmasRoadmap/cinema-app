@@ -455,6 +455,11 @@ body {
   color: var(--accent) !important;
 }
 
+/* ===== Utility ===== */
+.text-accent {
+  color: var(--accent) !important;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 576px) {
   .movie-poster {

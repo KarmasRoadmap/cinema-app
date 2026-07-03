@@ -4,6 +4,7 @@ from django.db import models
 class Movie(models.Model):
     """Película en cartelera."""
     imdb_id = models.CharField(max_length=20, unique=True, null=True, blank=True, db_index=True)
+    tmdb_id = models.IntegerField(null=True, blank=True, db_index=True)
     title = models.CharField(max_length=255)
     description = models.TextField()
     poster_url = models.URLField(max_length=500)

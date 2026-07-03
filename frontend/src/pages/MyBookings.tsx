@@ -134,7 +134,7 @@ export default function MyBookings() {
                     </div>
                     <div>
                       <strong>Sala:</strong>{" "}
-                      {booking.showtime_detail.theater?.name || "N/A"}
+                      {booking.showtime_detail.theater_name || "N/A"}
                     </div>
                     <div>
                       <strong>Horario:</strong>{" "}
