@@ -33,12 +33,15 @@ class BookingCreateSerializer(serializers.ModelSerializer):
     card_number = serializers.CharField(write_only=True, max_length=19)
     card_expiry = serializers.CharField(write_only=True, max_length=5)
     card_cvv = serializers.CharField(write_only=True, max_length=4)
+    use_saved_card = serializers.BooleanField(default=False)
+    saved_card_last4 = serializers.CharField(write_only=True, required=False, allow_blank=True, default='')
 
     class Meta:
         model = Booking
         fields = [
             'id', 'showtime', 'user_email', 'seats', 'has_membership',
             'card_holder', 'card_number', 'card_expiry', 'card_cvv',
+            'use_saved_card', 'saved_card_last4',
             'status', 'created_at',
         ]
         read_only_fields = ['status', 'created_at']
@@ -60,12 +63,16 @@ class BookingCreateSerializer(serializers.ModelSerializer):
 
     # ── Card validation ──────────────────────────────────
     def validate_card_number(self, value):
+        if not value:
+            return ""  # Optional when using saved card
         digits = ''.join(filter(str.isdigit, value))
         if len(digits) != 16:
             raise serializers.ValidationError('El número de tarjeta debe tener 16 dígitos.')
-        return digits[-4:]  # Only store last 4 for display
+        return digits[-4:]
 
     def validate_card_expiry(self, value):
+        if not value:
+            return ""
         import re
         if not re.match(r'^\d{2}/\d{2}$', value):
             raise serializers.ValidationError('Formato: MM/AA')
@@ -110,6 +117,8 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         validated_data.pop('card_number', None)
         validated_data.pop('card_expiry', None)
         validated_data.pop('card_cvv', None)
+        validated_data.pop('use_saved_card', None)
+        validated_data.pop('saved_card_last4', None)
 
         showtime = validated_data['showtime']
         seat_count = len(seat_labels)

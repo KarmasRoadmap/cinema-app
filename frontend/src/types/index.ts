@@ -63,6 +63,8 @@ export interface CreateBookingPayload {
   card_number?: string;
   card_expiry?: string;
   card_cvv?: string;
+  use_saved_card?: boolean;
+  saved_card_last4?: string;
 }
 
 // ── TMDB ──────────────────────────────────────────────────

@@ -98,6 +98,8 @@ export function createBooking(
     card_number: payload.card_number || "",
     card_expiry: payload.card_expiry || "",
     card_cvv: payload.card_cvv || "",
+    use_saved_card: payload.use_saved_card || false,
+    saved_card_last4: payload.saved_card_last4 || "",
   };
   return request<Booking>("/bookings/", {
     method: "POST",

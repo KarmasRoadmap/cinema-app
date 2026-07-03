@@ -26,6 +26,7 @@ export default function BookingPage() {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [saveCardInfo, setSaveCardInfo] = useState(false);
+  const [useNewCard, setUseNewCard] = useState(false);
 
   // Submission state
   const [submitting, setSubmitting] = useState(false);
@@ -75,21 +76,41 @@ export default function BookingPage() {
       setSubmitError("Selecciona al menos un asiento.");
       return;
     }
-    if (!cardHolder.trim() || !cardNumber.trim() || !cardExpiry.trim() || !cardCvv.trim()) {
-      setSubmitError("Completa todos los datos de pago.");
-      return;
+    // Validation: if using saved card, only CVV required
+    const isUsingSavedCard = !!user?.saved_card_last4 && !useNewCard;
+    if (isUsingSavedCard) {
+      if (!cardCvv.trim()) {
+        setSubmitError("Ingresa el CVV de tu tarjeta guardada.");
+        return;
+      }
+    } else {
+      if (!cardHolder.trim() || !cardNumber.trim() || !cardExpiry.trim() || !cardCvv.trim()) {
+        setSubmitError("Completa todos los datos de pago.");
+        return;
+      }
     }
 
-    const payload = {
+    const isUsingSavedCard = !!user?.saved_card_last4 && !useNewCard;
+
+    const payload: CreateBookingPayload = {
       showtime_id: parseInt(showtimeId!, 10),
       user_email: userEmail,
       seats: selectedSeats,
       has_membership: hasMembership,
-      card_holder: cardHolder.trim(),
-      card_number: cardNumber.replace(/\s/g, ""),
-      card_expiry: cardExpiry.trim(),
       card_cvv: cardCvv.trim(),
     };
+
+    if (isUsingSavedCard) {
+      payload.card_holder = user!.saved_card_holder;
+      payload.card_number = user!.saved_card_last4;
+      payload.card_expiry = "00/00";
+      payload.use_saved_card = true;
+      payload.saved_card_last4 = user!.saved_card_last4;
+    } else {
+      payload.card_holder = cardHolder.trim();
+      payload.card_number = cardNumber.replace(/\s/g, "");
+      payload.card_expiry = cardExpiry.trim();
+    }
 
     setSubmitting(true);
     try {
@@ -346,62 +367,147 @@ export default function BookingPage() {
                 <label className="form-label small text-secondary">
                   Datos de pago
                 </label>
-                {user?.saved_card_last4 && (
-                  <div className="alert alert-success py-1 px-2 mb-2 small d-flex align-items-center gap-2">
-                    💳 Tarjeta guardada: **** {user.saved_card_last4}
-                  </div>
+                {user?.saved_card_last4 ? (
+                  <>
+                    <div className="alert alert-success py-1 px-2 mb-2 small d-flex justify-content-between align-items-center">
+                      <span>💳 Usando tarjeta **** {user.saved_card_last4}</span>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-link text-decoration-none p-0 small"
+                        style={{ color: "var(--accent)" }}
+                        onClick={() => {
+                          setCardNumber("");
+                          setCardExpiry("");
+                          setCardHolder("");
+                          // Force re-render by clearing user ref — use a state flag
+                          setUseNewCard(true);
+                        }}
+                      >
+                        Usar otra
+                      </button>
+                    </div>
+                    {!useNewCard ? (
+                      <>
+                        <p className="text-secondary small mb-2">
+                          Titular: <strong>{user.saved_card_holder}</strong>
+                        </p>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="CVV (3-4 dígitos)"
+                          maxLength={4}
+                          value={cardCvv}
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, "");
+                            setCardCvv(raw.slice(0, 4));
+                          }}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <input
+                          type="text"
+                          className="form-control mb-2"
+                          placeholder="Titular de la tarjeta"
+                          value={cardHolder}
+                          onChange={(e) => setCardHolder(e.target.value)}
+                        />
+                        <input
+                          type="text"
+                          className="form-control mb-2"
+                          placeholder="Número de tarjeta (16 dígitos)"
+                          maxLength={19}
+                          value={cardNumber}
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, "").slice(0, 16);
+                            const formatted = raw.replace(/(\d{4})(?=\d)/g, "$1 ");
+                            setCardNumber(formatted);
+                          }}
+                        />
+                        <div className="row g-2 mb-2">
+                          <div className="col-6">
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="MM/AA"
+                              maxLength={5}
+                              value={cardExpiry}
+                              onChange={(e) => {
+                                let raw = e.target.value.replace(/\D/g, "").slice(0, 4);
+                                if (raw.length >= 3) raw = raw.slice(0, 2) + "/" + raw.slice(2);
+                                setCardExpiry(raw);
+                              }}
+                            />
+                          </div>
+                          <div className="col-6">
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="CVV"
+                              maxLength={4}
+                              value={cardCvv}
+                              onChange={(e) => {
+                                const raw = e.target.value.replace(/\D/g, "");
+                                setCardCvv(raw.slice(0, 4));
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      className="form-control mb-2"
+                      placeholder="Titular de la tarjeta"
+                      value={cardHolder}
+                      onChange={(e) => setCardHolder(e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      className="form-control mb-2"
+                      placeholder="Número de tarjeta (16 dígitos)"
+                      maxLength={19}
+                      value={cardNumber}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/\D/g, "").slice(0, 16);
+                        const formatted = raw.replace(/(\d{4})(?=\d)/g, "$1 ");
+                        setCardNumber(formatted);
+                      }}
+                    />
+                    <div className="row g-2">
+                      <div className="col-6">
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="MM/AA"
+                          maxLength={5}
+                          value={cardExpiry}
+                          onChange={(e) => {
+                            let raw = e.target.value.replace(/\D/g, "").slice(0, 4);
+                            if (raw.length >= 3) raw = raw.slice(0, 2) + "/" + raw.slice(2);
+                            setCardExpiry(raw);
+                          }}
+                        />
+                      </div>
+                      <div className="col-6">
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="CVV"
+                          maxLength={4}
+                          value={cardCvv}
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, "");
+                            setCardCvv(raw.slice(0, 4));
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </>
                 )}
-                <input
-                  type="text"
-                  className="form-control mb-2"
-                  placeholder="Titular de la tarjeta"
-                  value={cardHolder}
-                  onChange={(e) => setCardHolder(e.target.value)}
-                />
-                <input
-                  type="text"
-                  className="form-control mb-2"
-                  placeholder="Número de tarjeta (16 dígitos)"
-                  maxLength={19}
-                  value={cardNumber}
-                  onChange={(e) => {
-                    const raw = e.target.value.replace(/\D/g, "").slice(0, 16);
-                    // Format with spaces every 4 digits
-                    const formatted = raw.replace(/(\d{4})(?=\d)/g, "$1 ");
-                    setCardNumber(formatted);
-                  }}
-                />
-                <div className="row g-2">
-                  <div className="col-6">
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="MM/AA"
-                      maxLength={5}
-                      value={cardExpiry}
-                      onChange={(e) => {
-                        let raw = e.target.value.replace(/\D/g, "").slice(0, 4);
-                        if (raw.length >= 3) {
-                          raw = raw.slice(0, 2) + "/" + raw.slice(2);
-                        }
-                        setCardExpiry(raw);
-                      }}
-                    />
-                  </div>
-                  <div className="col-6">
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="CVV"
-                      maxLength={4}
-                      value={cardCvv}
-                      onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, "");
-                        setCardCvv(raw.slice(0, 4));
-                      }}
-                    />
-                  </div>
-                </div>
                 <div className="form-check mt-2">
                   <input
                     type="checkbox"
