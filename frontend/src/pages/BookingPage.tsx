@@ -90,8 +90,6 @@ export default function BookingPage() {
       }
     }
 
-    const isUsingSavedCard = !!user?.saved_card_last4 && !useNewCard;
-
     const payload: CreateBookingPayload = {
       showtime_id: parseInt(showtimeId!, 10),
       user_email: userEmail,
