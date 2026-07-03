@@ -5,7 +5,7 @@ from ninja import NinjaAPI
 
 from users.routers import auth_router, user_router
 from cinema.stats import stats_router
-from cinema.pdf_views import pdf_router
+from cinema.pdf_views import pdf_router, ticket_pdf_view
 
 api = NinjaAPI(title="Cinema", version="1.0.0", urls_namespace="cinema-api")
 api.add_router("/auth/", auth_router)
@@ -15,6 +15,7 @@ api.add_router("/pdf/", pdf_router)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/pdf/ticket/<int:booking_id>', ticket_pdf_view),  # Django puro, antes de Ninja
     path('api/', api.urls),           # Ninja primero (docs, auth, users, stats, pdf)
     path('api/', include('cinema.urls')),  # DRF después (movies, theaters, showtimes, bookings)
 ]

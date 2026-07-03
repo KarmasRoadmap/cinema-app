@@ -14,33 +14,47 @@ from cinema.models import Booking
 pdf_router = Router(tags=["pdf"])
 
 
-# ── Ticket PDF download ────────────────────────────────────
+# ── Ticket PDF download (Django view, bypass Ninja) ──────────
 
-@pdf_router.get("/ticket/{booking_id}", auth=JWTAuth(), url_name="ticket_pdf")
-def ticket_pdf(request, booking_id: int):
-    """GET /api/pdf/ticket/{booking_id} — download ticket as PDF."""
+from django.urls import path as dj_path
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def ticket_pdf_view(request, booking_id):
+    """Raw Django view — returns PDF directly, no Ninja serialization."""
+    from core.auth import decode_token
+
+    # Auth check
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return HttpResponse("Unauthorized", status=401)
+    token = auth[7:]
+    try:
+        payload = decode_token(token)
+        from users.models import User
+        user = User.objects.get(pk=payload["user_id"])
+    except Exception:
+        return HttpResponse("Invalid token", status=401)
+
     try:
         booking = Booking.objects.select_related(
             "showtime__movie", "showtime__theater"
         ).prefetch_related("seats").get(pk=booking_id)
     except Booking.DoesNotExist:
-        raise HttpError(404, "Booking not found")
+        return HttpResponse("Booking not found", status=404)
 
-    # Anyone can download their own ticket (same email) or admin
-    if request.user.role != "admin" and request.user.email != booking.user_email:
-        raise HttpError(403, "Not authorized")
+    if user.role != "admin" and user.email != booking.user_email:
+        return HttpResponse("Not authorized", status=403)
 
     try:
         buffer = _build_ticket_pdf(booking)
     except Exception as e:
-        raise HttpError(500, f"PDF generation failed: {str(e)}")
+        return HttpResponse(f"PDF error: {e}", status=500)
 
-    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
-    response["Content-Disposition"] = (
-        f'attachment; filename="ticket-{booking.id}.pdf"'
-    )
-    response["Content-Length"] = len(buffer.getvalue())
-    return response
+    resp = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    resp["Content-Disposition"] = f'attachment; filename="ticket-{booking.id}.pdf"'
+    resp["Content-Length"] = len(buffer.getvalue())
+    return resp
 
 
 # ── Admin report PDFs ───────────────────────────────────────
