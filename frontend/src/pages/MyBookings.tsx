@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getMyBookings, getMyBookingsAuth } from "../services/api";
+import { getMyBookings, getMyBookingsAuth, downloadTicketPdf } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import type { Booking } from "../types";
 
@@ -196,6 +196,15 @@ export default function MyBookings() {
                 <div className="small text-secondary mt-1">
                   <strong>Email:</strong> {booking.user_email}
                 </div>
+
+                {isAuthenticated && booking.status === "confirmed" && (
+                  <button
+                    className="btn btn-sm btn-outline-light mt-2 w-100"
+                    onClick={() => downloadTicketPdf(booking.id)}
+                  >
+                    📥 Descargar ticket
+                  </button>
+                )}
               </div>
             </div>
           ))}
