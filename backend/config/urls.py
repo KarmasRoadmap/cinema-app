@@ -15,6 +15,6 @@ api.add_router("/pdf/", pdf_router)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('cinema.urls')),
-    path('api/', api.urls),
+    path('api/', api.urls),           # Ninja primero (docs, auth, users, stats, pdf)
+    path('api/', include('cinema.urls')),  # DRF después (movies, theaters, showtimes, bookings)
 ]
