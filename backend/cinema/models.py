@@ -66,6 +66,9 @@ class Booking(models.Model):
     showtime = models.ForeignKey(Showtime, on_delete=models.CASCADE, related_name='bookings')
     user_email = models.EmailField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='confirmed')
+    total = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    discount = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    has_membership = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -79,6 +82,7 @@ class Seat(models.Model):
     """Asiento reservado dentro de un booking."""
     booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='seats')
     seat_label = models.CharField(max_length=10)
+    qr_code = models.TextField(blank=True, default='')
 
     class Meta:
         ordering = ['seat_label']

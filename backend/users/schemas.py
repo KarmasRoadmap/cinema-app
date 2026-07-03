@@ -38,12 +38,14 @@ class UserOut(Schema):
     name: str
     role: str
     is_active: bool
+    has_membership: bool
     created_at: datetime
     updated_at: datetime
 
 
 class UserUpdateInput(Schema):
     name: Optional[str] = None
+    has_membership: Optional[bool] = None
 
 
 class PasswordChangeInput(Schema):
@@ -64,6 +66,7 @@ class AdminUpdateUserInput(Schema):
 class AdminSeatOut(Schema):
     id: int
     seat_label: str
+    qr_code: str = ""
 
 
 class AdminBookingOut(Schema):
@@ -74,5 +77,8 @@ class AdminBookingOut(Schema):
     start_time: datetime
     user_email: str
     status: str
+    total: float
+    discount: float
+    has_membership: bool
     seats: list[AdminSeatOut]
     created_at: datetime

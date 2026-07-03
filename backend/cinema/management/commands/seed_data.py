@@ -53,8 +53,11 @@ class Command(BaseCommand):
         # ── Crear salas si no existen ────────────────────────────────
         theaters = []
         for name, capacity, rows, cols in [
-            ("Sala 1 — Digital", 100, 10, 10),
-            ("Sala 2 — Premium", 80, 8, 10),
+            ("Sala 1 — Digital", 80, 8, 10),
+            ("Sala 2 — Premium", 60, 6, 10),
+            ("Sala 3 — Digital", 80, 8, 10),
+            ("Sala 4 — IMAX", 50, 5, 10),
+            ("Sala 5 — VIP", 40, 4, 10),
         ]:
             theater, _ = Theater.objects.update_or_create(
                 name=name,

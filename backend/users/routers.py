@@ -132,8 +132,11 @@ def update_me(request, payload: UserUpdateInput):
     user = request.user
     if payload.name is not None:
         user.name = payload.name
-        user.save(update_fields=["name", "updated_at"])
+    if payload.has_membership is not None:
+        user.has_membership = payload.has_membership
+    user.save(update_fields=[f for f in ['name', 'has_membership', 'updated_at'] if payload.name is not None or payload.has_membership is not None])
 
+    if payload.name is not None or payload.has_membership is not None:
         log_audit_event(
             user=user,
             action="user_updated_profile",
@@ -302,7 +305,10 @@ def admin_get_user_bookings(request, user_id: int):
             "start_time": b.showtime.start_time,
             "user_email": b.user_email,
             "status": b.status,
-            "seats": [{"id": s.id, "seat_label": s.seat_label} for s in b.seats.all()],
+            "total": float(b.total),
+            "discount": float(b.discount),
+            "has_membership": b.has_membership,
+            "seats": [{"id": s.id, "seat_label": s.seat_label, "qr_code": s.qr_code} for s in b.seats.all()],
             "created_at": b.created_at,
         }
         for b in bookings

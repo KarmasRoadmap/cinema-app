@@ -1,4 +1,4 @@
-import type { Movie, Showtime, Booking, CreateBookingPayload, TMDBSearchResult, AuthTokens, UserProfile, AdminBooking } from "../types";
+import type { Movie, Showtime, Booking, CreateBookingPayload, TMDBSearchResult, AuthTokens, UserProfile, AdminBooking, DashboardStats } from "../types";
 
 const BASE_URL: string =
   (import.meta.env.VITE_API_URL as string) || "http://localhost:8000/api";
@@ -89,10 +89,15 @@ export function getShowtimeDetail(id: number): Promise<Showtime> {
 export function createBooking(
   payload: CreateBookingPayload
 ): Promise<Booking> {
-  const backendPayload = {
+  const backendPayload: Record<string, unknown> = {
     showtime: payload.showtime_id,
     user_email: payload.user_email,
     seats: payload.seats.map((label) => ({ seat_label: label })),
+    has_membership: payload.has_membership || false,
+    card_holder: payload.card_holder || "",
+    card_number: payload.card_number || "",
+    card_expiry: payload.card_expiry || "",
+    card_cvv: payload.card_cvv || "",
   };
   return request<Booking>("/bookings/", {
     method: "POST",
@@ -153,4 +158,44 @@ export function getAdminUsers(params?: {
 
 export function getAdminUserBookings(userId: number): Promise<AdminBooking[]> {
   return request<AdminBooking[]>(`/users/${userId}/bookings`);
+}
+
+// ── Dashboard ──────────────────────────────────────────────
+
+export function getDashboardStats(): Promise<DashboardStats> {
+  return request<DashboardStats>("/stats/dashboard");
+}
+
+// ── PDF downloads ──────────────────────────────────────────
+
+export function downloadTicketPdf(bookingId: number): void {
+  const token = getToken();
+  if (!token) return;
+  const url = `${BASE_URL}/pdf/ticket/${bookingId}`;
+  fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    .then((res) => res.blob())
+    .then((blob) => {
+      const blobUrl = URL.createObjectURL(blob);
+      const dl = document.createElement("a");
+      dl.href = blobUrl;
+      dl.download = `ticket-${bookingId}.pdf`;
+      dl.click();
+      URL.revokeObjectURL(blobUrl);
+    });
+}
+
+export function downloadReportPdf(type: "sales" | "movies"): void {
+  const token = getToken();
+  if (!token) return;
+  const url = `${BASE_URL}/pdf/report/${type}`;
+  fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    .then((res) => res.blob())
+    .then((blob) => {
+      const blobUrl = URL.createObjectURL(blob);
+      const dl = document.createElement("a");
+      dl.href = blobUrl;
+      dl.download = `reporte-${type}.pdf`;
+      dl.click();
+      URL.revokeObjectURL(blobUrl);
+    });
 }

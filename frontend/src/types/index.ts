@@ -35,14 +35,21 @@ export interface Showtime {
 export interface Seat {
   id: number;
   seat_label: string;
+  qr_code?: string;
 }
 
 export interface Booking {
   id: number;
   showtime: number;
+  movie_title?: string;
+  theater_name?: string;
+  start_time?: string;
   showtime_detail?: Showtime;
   user_email: string;
   status: "confirmed" | "cancelled";
+  total: number;
+  discount: number;
+  has_membership: boolean;
   seats: Seat[];
   created_at: string;
 }
@@ -51,6 +58,11 @@ export interface CreateBookingPayload {
   showtime_id: number;
   user_email: string;
   seats: string[];
+  has_membership?: boolean;
+  card_holder?: string;
+  card_number?: string;
+  card_expiry?: string;
+  card_cvv?: string;
 }
 
 // ── TMDB ──────────────────────────────────────────────────
@@ -71,6 +83,7 @@ export interface UserProfile {
   name: string;
   role: string;
   is_active: boolean;
+  has_membership: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -87,6 +100,7 @@ export interface AuthTokens {
 export interface AdminSeat {
   id: number;
   seat_label: string;
+  qr_code?: string;
 }
 
 export interface AdminBooking {
@@ -99,4 +113,49 @@ export interface AdminBooking {
   status: string;
   seats: AdminSeat[];
   created_at: string;
+}
+
+// ── Dashboard ─────────────────────────────────────────────
+
+export interface DashboardKPIs {
+  total_sales: number;
+  total_revenue: number;
+  total_tickets: number;
+  total_clients: number;
+  with_membership: number;
+  without_membership: number;
+  total_discounts: number;
+  avg_tickets_per_booking: number;
+}
+
+export interface ChartDataPoint {
+  date?: string;
+  movie?: string;
+  theater?: string;
+  count: number;
+  revenue: number;
+}
+
+export interface OccupancyPoint {
+  theater: string;
+  capacity: number;
+  booked_seats: number;
+  total_showtimes: number;
+  occupancy_pct: number;
+}
+
+export interface DashboardCharts {
+  sales_by_day: ChartDataPoint[];
+  sales_by_movie: ChartDataPoint[];
+  sales_by_theater: ChartDataPoint[];
+  top3_movies: ChartDataPoint[];
+  most_sold: ChartDataPoint | null;
+  least_sold: ChartDataPoint | null;
+  occupancy: OccupancyPoint[];
+  revenue_by_movie: ChartDataPoint[];
+}
+
+export interface DashboardStats {
+  kpis: DashboardKPIs;
+  charts: DashboardCharts;
 }
