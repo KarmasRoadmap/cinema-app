@@ -2,9 +2,10 @@
 import io
 from datetime import datetime
 
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from ninja import Router
 from ninja.errors import HttpError
+import tempfile, os
 
 from core.auth import JWTAuth
 from core.permissions import role_required
@@ -29,11 +30,16 @@ def ticket_pdf(request, booking_id: int):
     if request.user.role != "admin" and request.user.email != booking.user_email:
         raise HttpError(403, "Not authorized")
 
-    buffer = _build_ticket_pdf(booking)
+    try:
+        buffer = _build_ticket_pdf(booking)
+    except Exception as e:
+        raise HttpError(500, f"PDF generation failed: {str(e)}")
+
     response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
     response["Content-Disposition"] = (
         f'attachment; filename="ticket-{booking.id}.pdf"'
     )
+    response["Content-Length"] = len(buffer.getvalue())
     return response
 
 
@@ -153,10 +159,10 @@ def _build_ticket_pdf(booking) -> io.BytesIO:
 
             qr_data = f"UPAPOLIS|BK{booking.id}|{seat.seat_label}"
             qr_img = qrlib.make(qr_data, box_size=4, border=2)
-            buf = BytesIO()
-            qr_img.save(buf, format="PNG")
-            buf.seek(0)
-            c.drawImage(buf, x, y, qr_size, qr_size)
+            qr_buf = BytesIO()
+            qr_img.save(qr_buf, format="PNG")
+            qr_buf.seek(0)
+            c.drawImage(qr_buf, x, y, qr_size, qr_size)
         except Exception as e:
             # Fallback: draw a placeholder rectangle
             c.setStrokeColor(colors.grey)
