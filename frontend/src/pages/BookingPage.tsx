@@ -78,8 +78,8 @@ export default function BookingPage() {
       seats: selectedSeats,
       has_membership: hasMembership,
       card_holder: cardHolder.trim(),
-      card_number: cardNumber.trim(),
-      card_expiry: cardExpiry.trim(),
+      card_number: cardNumber.replace(/\s/g, ""),
+      card_expiry: cardExpiry.replace(/\//g, ""),
       card_cvv: cardCvv.trim(),
     };
 
@@ -347,8 +347,10 @@ export default function BookingPage() {
                   maxLength={19}
                   value={cardNumber}
                   onChange={(e) => {
-                    const raw = e.target.value.replace(/\D/g, "");
-                    setCardNumber(raw.slice(0, 16));
+                    const raw = e.target.value.replace(/\D/g, "").slice(0, 16);
+                    // Format with spaces every 4 digits
+                    const formatted = raw.replace(/(\d{4})(?=\d)/g, "$1 ");
+                    setCardNumber(formatted);
                   }}
                 />
                 <div className="row g-2">
@@ -359,7 +361,13 @@ export default function BookingPage() {
                       placeholder="MM/AA"
                       maxLength={5}
                       value={cardExpiry}
-                      onChange={(e) => setCardExpiry(e.target.value)}
+                      onChange={(e) => {
+                        let raw = e.target.value.replace(/\D/g, "").slice(0, 4);
+                        if (raw.length >= 3) {
+                          raw = raw.slice(0, 2) + "/" + raw.slice(2);
+                        }
+                        setCardExpiry(raw);
+                      }}
                     />
                   </div>
                   <div className="col-6">
