@@ -136,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const isAuthenticated = !!token && !!user;
-  const isAdmin = !!(user && (user.role === "admin" || user.is_active));
+  const isAdmin = !!(user && user.role === "admin");
 
   return (
     <AuthContext.Provider

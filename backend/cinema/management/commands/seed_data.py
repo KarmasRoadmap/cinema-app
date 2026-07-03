@@ -110,6 +110,7 @@ class Command(BaseCommand):
                 email=admin_email,
                 password=admin_password,
                 name="Admin",
+                role="admin",
             )
             self.stdout.write(self.style.SUCCESS(
                 f"\n👤 Admin user created:\n"
