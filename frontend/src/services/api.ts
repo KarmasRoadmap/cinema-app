@@ -137,6 +137,19 @@ export function getMe(): Promise<UserProfile> {
   return request<UserProfile>("/users/me");
 }
 
+export function changePassword(
+  oldPassword: string,
+  newPassword: string
+): Promise<void> {
+  return request<void>("/users/change-password", {
+    method: "POST",
+    body: JSON.stringify({
+      old_password: oldPassword,
+      new_password: newPassword,
+    }),
+  });
+}
+
 // ── Admin ─────────────────────────────────────────────────
 
 export function getAdminUsers(params?: {

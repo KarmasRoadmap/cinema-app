@@ -63,6 +63,11 @@ export default function Navbar() {
                   </span>
                 </li>
                 <li className="nav-item">
+                  <Link className={isActive("/change-password")} to="/change-password">
+                    🔒 Contraseña
+                  </Link>
+                </li>
+                <li className="nav-item">
                   <button
                     className="nav-link btn btn-link text-secondary border-0"
                     onClick={handleLogout}
