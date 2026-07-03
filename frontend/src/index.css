@@ -1,16 +1,44 @@
-/* ===== Cinema App — Custom Dark Theme ===== */
+/* ===== Cinema App — Dual Theme (Light Wells / Dark Warm) ===== */
 
-:root {
-  --bg-primary: #0a0a0a;
-  --bg-card: #1a1a2e;
-  --bg-secondary: #16213e;
-  --accent: #e94560;
-  --accent-hover: #c73a52;
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0b0;
-  --border-color: #2a2a4a;
+/* ── Light theme (Wells-inspired: beige + dark gray) ──── */
+[data-theme="light"] {
+  --bg-primary: #DDD0C8;
+  --bg-card: #FFFFFF;
+  --bg-secondary: #f5f0ec;
+  --accent: #323232;
+  --accent-hover: #555555;
+  --accent-soft: rgba(50, 50, 50, 0.08);
+  --text-primary: #323232;
+  --text-secondary: #666666;
+  --border-color: #c8bdb5;
+  --navbar-bg: #ffffff;
+  --footer-bg: #f5f0ec;
+  --hero-gradient-start: #DDD0C8;
+  --hero-gradient-end: #f5f0ec;
+  --input-bg: #ffffff;
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
+/* ── Dark theme (warm charcoal + gold accent) ──────────── */
+[data-theme="dark"] {
+  --bg-primary: #1e1e24;
+  --bg-card: #2a2a32;
+  --bg-secondary: #25252d;
+  --accent: #c9a96e;
+  --accent-hover: #b8944f;
+  --accent-soft: rgba(201, 169, 110, 0.12);
+  --text-primary: #e8e8e8;
+  --text-secondary: #999999;
+  --border-color: #3a3a44;
+  --navbar-bg: #25252d;
+  --footer-bg: #25252d;
+  --hero-gradient-start: #25252d;
+  --hero-gradient-end: #1e1e24;
+  --input-bg: #2a2a32;
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+
+/* ── Base ──────────────────────────────────────────────── */
 * {
   box-sizing: border-box;
 }
@@ -22,13 +50,14 @@ body {
   color: var(--text-primary);
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   min-height: 100vh;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 #root {
   min-height: 100vh;
 }
 
-/* ===== Layout ===== */
+/* ── Layout ───────────────────────────────────────────── */
 .app-layout {
   display: flex;
   flex-direction: column;
@@ -39,10 +68,14 @@ body {
   flex: 1;
 }
 
-/* ===== Navbar ===== */
+/* ── Navbar ───────────────────────────────────────────── */
 .navbar {
-  background-color: var(--bg-secondary) !important;
+  background-color: var(--navbar-bg) !important;
   border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="light"] .navbar {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
 .navbar-brand .brand-text {
@@ -53,7 +86,8 @@ body {
   text-transform: uppercase;
 }
 
-.navbar-dark .navbar-nav .nav-link {
+.navbar-dark .navbar-nav .nav-link,
+.navbar .navbar-nav .nav-link {
   color: var(--text-secondary);
   font-weight: 500;
   padding: 0.5rem 1rem;
@@ -61,7 +95,9 @@ body {
 }
 
 .navbar-dark .navbar-nav .nav-link:hover,
-.navbar-dark .navbar-nav .nav-link.active {
+.navbar .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.active,
+.navbar .navbar-nav .nav-link.active {
   color: var(--accent);
 }
 
@@ -69,14 +105,35 @@ body {
   border-color: var(--border-color);
 }
 
-/* ===== Footer ===== */
+/* Theme toggle button */
+.theme-toggle {
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.theme-toggle:hover {
+  background: var(--accent-soft);
+}
+
+[data-theme="light"] .navbar-dark {
+  --bs-navbar-color: var(--text-secondary);
+  --bs-navbar-hover-color: var(--accent);
+  --bs-navbar-active-color: var(--accent);
+}
+
+/* ── Footer ───────────────────────────────────────────── */
 .app-footer {
-  background-color: var(--bg-secondary);
+  background-color: var(--footer-bg);
   border-top: 1px solid var(--border-color);
   margin-top: auto;
 }
 
-/* ===== Buttons ===== */
+/* ── Buttons ──────────────────────────────────────────── */
 .btn-accent {
   background-color: var(--accent);
   color: #fff;
@@ -97,8 +154,8 @@ body {
 }
 
 .btn-accent:disabled {
-  background-color: #5a5a7a;
-  color: #999;
+  background-color: var(--text-secondary);
+  color: #ccc;
 }
 
 .btn-outline-light {
@@ -112,20 +169,21 @@ body {
   border-color: var(--text-primary);
 }
 
-/* ===== Cards ===== */
+/* ── Cards ────────────────────────────────────────────── */
 .card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
+  box-shadow: var(--card-shadow);
 }
 
 .card-body {
   padding: 1rem;
 }
 
-/* ===== Hero Banner ===== */
+/* ── Hero Banner ───────────────────────────────────────── */
 .hero-banner {
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+  background: linear-gradient(135deg, var(--hero-gradient-start) 0%, var(--hero-gradient-end) 100%);
   border-bottom: 3px solid var(--accent);
 }
 
@@ -146,7 +204,7 @@ body {
   margin: 1.5rem auto 0;
 }
 
-/* ===== Section Titles ===== */
+/* ── Section Titles ───────────────────────────────────── */
 .section-title {
   color: var(--text-primary);
   font-weight: 700;
@@ -154,7 +212,7 @@ body {
   padding-left: 1rem;
 }
 
-/* ===== Movie Card ===== */
+/* ── Movie Card ───────────────────────────────────────── */
 .movie-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -165,7 +223,7 @@ body {
 
 .movie-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(233, 69, 96, 0.2);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
   border-color: var(--accent);
 }
 
@@ -192,15 +250,15 @@ body {
 }
 
 .movie-rating {
-  color: #ffc107;
+  color: #e8a838;
   font-weight: 600;
 }
 
 .star {
-  color: #ffc107;
+  color: #e8a838;
 }
 
-/* ===== Movie Detail ===== */
+/* ── Movie Detail ─────────────────────────────────────── */
 .movie-detail-poster {
   max-height: 400px;
   object-fit: cover;
@@ -233,7 +291,7 @@ body {
   font-size: 1rem;
 }
 
-/* ===== Showtime List ===== */
+/* ── Showtime List ────────────────────────────────────── */
 .showtime-list {
   display: flex;
   flex-direction: column;
@@ -279,7 +337,7 @@ body {
   color: #fff;
 }
 
-/* ===== Seat Picker ===== */
+/* ── Seat Picker ──────────────────────────────────────── */
 .seat-picker {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -294,8 +352,8 @@ body {
 
 .screen-text {
   display: inline-block;
-  background-color: #fff;
-  color: #000;
+  background-color: #323232;
+  color: #fff;
   font-weight: 700;
   font-size: 0.85rem;
   letter-spacing: 4px;
@@ -388,17 +446,9 @@ body {
   cursor: default;
 }
 
-.legend-seat.available {
-  background-color: #27ae60;
-}
-
-.legend-seat.selected {
-  background-color: #f1c40f;
-}
-
-.legend-seat.occupied {
-  background-color: #e74c3c;
-}
+.legend-seat.available { background-color: #27ae60; }
+.legend-seat.selected { background-color: #f1c40f; }
+.legend-seat.occupied { background-color: #e74c3c; }
 
 .selected-seats-info {
   text-align: center;
@@ -409,18 +459,26 @@ body {
   font-size: 0.9rem;
 }
 
-/* ===== Forms ===== */
-.form-control {
-  background-color: var(--bg-secondary);
+/* ── Forms ────────────────────────────────────────────── */
+.form-control,
+.form-select {
+  background-color: var(--input-bg);
   border-color: var(--border-color);
   color: var(--text-primary);
 }
 
-.form-control:focus {
-  background-color: var(--bg-secondary);
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--input-bg);
   border-color: var(--accent);
   color: var(--text-primary);
-  box-shadow: 0 0 0 0.2rem rgba(233, 69, 96, 0.25);
+  box-shadow: 0 0 0 0.2rem var(--accent-soft);
+}
+
+/* Visible placeholders */
+.form-control::placeholder {
+  color: var(--text-secondary) !important;
+  opacity: 0.55;
 }
 
 .form-label {
@@ -428,10 +486,39 @@ body {
   font-weight: 500;
 }
 
-/* ===== Alerts ===== */
+.form-check-input:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── Tables ───────────────────────────────────────────── */
+.table {
+  color: var(--text-primary);
+}
+
+.table-dark {
+  --bs-table-bg: var(--bg-card);
+  --bs-table-color: var(--text-primary);
+  --bs-table-border-color: var(--border-color);
+  --bs-table-hover-bg: var(--bg-secondary);
+}
+
+.table-dark thead th {
+  border-bottom: 2px solid var(--accent);
+}
+
+.table-active {
+  --bs-table-bg: var(--accent-soft) !important;
+}
+
+[data-theme="light"] .table-dark {
+  --bs-table-bg: var(--bg-card);
+}
+
+/* ── Alerts ───────────────────────────────────────────── */
 .alert-danger {
-  background-color: rgba(231, 76, 60, 0.15);
-  border-color: rgba(231, 76, 60, 0.3);
+  background-color: rgba(231, 76, 60, 0.12);
+  border-color: rgba(231, 76, 60, 0.25);
   color: #e74c3c;
 }
 
@@ -441,68 +528,55 @@ body {
   color: var(--text-secondary);
 }
 
-/* ===== Badges ===== */
+.alert-success {
+  background-color: rgba(39, 174, 96, 0.12);
+  border-color: rgba(39, 174, 96, 0.25);
+  color: #27ae60;
+}
+
+/* ── Badges ───────────────────────────────────────────── */
 .badge.bg-success {
   background-color: #27ae60 !important;
 }
-
 .badge.bg-danger {
   background-color: #e74c3c !important;
 }
+.badge.bg-secondary {
+  background-color: var(--text-secondary) !important;
+}
+.bg-accent {
+  background-color: var(--accent) !important;
+}
 
-/* ===== Spinner ===== */
+/* ── Spinner ──────────────────────────────────────────── */
 .spinner-border.text-accent {
   color: var(--accent) !important;
 }
 
-/* ===== Utility ===== */
+/* ── Utility ──────────────────────────────────────────── */
 .text-accent {
   color: var(--accent) !important;
 }
+.text-success {
+  color: #27ae60 !important;
+}
 
-/* ===== Responsive ===== */
+hr {
+  border-color: var(--border-color);
+}
+
+/* ── Responsive ───────────────────────────────────────── */
 @media (max-width: 576px) {
-  .movie-poster {
-    height: 200px;
-  }
-
-  .movie-detail-title {
-    font-size: 1.5rem;
-  }
-
-  .showtime-time {
-    font-size: 1.2rem;
-  }
-
-  .seat {
-    width: 26px;
-    height: 24px;
-    font-size: 0.6rem;
-  }
-
-  .row-label {
-    width: 18px;
-    font-size: 0.7rem;
-  }
-
-  .hero-title {
-    font-size: 2rem;
-  }
+  .movie-poster { height: 200px; }
+  .movie-detail-title { font-size: 1.5rem; }
+  .showtime-time { font-size: 1.2rem; }
+  .seat { width: 26px; height: 24px; font-size: 0.6rem; }
+  .row-label { width: 18px; font-size: 0.7rem; }
+  .hero-title { font-size: 2rem; }
 }
 
 @media (min-width: 576px) and (max-width: 768px) {
-  .movie-poster {
-    height: 220px;
-  }
-
-  .seat {
-    width: 28px;
-    height: 26px;
-  }
-}
-
-@media (min-width: 768px) {
-  .movie-poster {
-    height: 280px;
-  }
+  .movie-poster { height: 220px; }
+  .seat { width: 28px; height: 26px; }
+  .hero-title { font-size: 2.5rem; }
 }

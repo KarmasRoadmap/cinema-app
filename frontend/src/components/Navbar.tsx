@@ -1,10 +1,12 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const isActive = (path: string) =>
     location.pathname === path ? "nav-link active" : "nav-link";
@@ -15,7 +17,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark">
+    <nav className="navbar navbar-expand-lg">
       <div className="container">
         <Link className="navbar-brand" to="/">
           <span className="brand-text">CINEMA</span>
@@ -77,6 +79,18 @@ export default function Navbar() {
                 </Link>
               </li>
             )}
+
+            {/* Theme toggle */}
+            <li className="nav-item ms-2">
+              <button
+                className="btn btn-sm theme-toggle"
+                onClick={toggleTheme}
+                title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
+                aria-label="Cambiar tema"
+              >
+                {theme === "dark" ? "☀️" : "🌙"}
+              </button>
+            </li>
           </ul>
         </div>
       </div>
