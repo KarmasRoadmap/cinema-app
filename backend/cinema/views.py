@@ -18,6 +18,7 @@ from .serializers import (
     BookingListSerializer,
 )
 from . import tmdb
+from core.auth import DRFJWTAuth
 
 
 class MovieViewSet(viewsets.ReadOnlyModelViewSet):
@@ -152,3 +153,12 @@ class BookingViewSet(viewsets.ModelViewSet):
             BookingListSerializer(booking).data,
             status=status.HTTP_201_CREATED,
         )
+
+    @action(detail=False, methods=['get'], url_path='mine',
+            authentication_classes=[DRFJWTAuth])
+    def mine(self, request):
+        """GET /api/bookings/mine/ — autenticado. Devuelve reservas del usuario logueado."""
+        bookings = self.get_queryset().filter(
+            user_email=request.user.email
+        ).order_by('-created_at')
+        return Response(BookingListSerializer(bookings, many=True).data)

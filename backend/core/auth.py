@@ -96,3 +96,44 @@ class JWTAuth(HttpBearer):
         # Attach user to request so views can access request.user
         request.user = user
         return user
+
+
+# ---------------------------------------------------------------------------
+# DRF-compatible authentication class
+# ---------------------------------------------------------------------------
+from rest_framework import authentication
+from rest_framework import exceptions as drf_exceptions
+
+
+class DRFJWTAuth(authentication.BaseAuthentication):
+    """DRF authentication class that reads a Bearer JWT token.
+
+    Reuses the same ``decode_token`` / User model as the Ninja JWTAuth.
+    """
+
+    def authenticate(self, request):
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return None  # Not a Bearer token → skip to next auth class
+
+        token = auth_header[7:].strip()
+        try:
+            payload = decode_token(token)
+        except HttpError as e:
+            raise drf_exceptions.AuthenticationFailed(str(e))
+
+        if payload.get("type") != "access":
+            raise drf_exceptions.AuthenticationFailed(
+                "Invalid token type — expected access token"
+            )
+
+        User = __import__("django.contrib.auth").contrib.auth.get_user_model()
+        try:
+            user = User.objects.get(pk=payload["user_id"])
+        except User.DoesNotExist:
+            raise drf_exceptions.AuthenticationFailed("User not found")
+
+        if not user.is_active:
+            raise drf_exceptions.AuthenticationFailed("User account is disabled")
+
+        return (user, token)

@@ -104,6 +104,10 @@ export function getMyBookings(email: string): Promise<Booking[]> {
   return request<Booking[]>(`/bookings/?user_email=${encodeURIComponent(email)}`);
 }
 
+export function getMyBookingsAuth(): Promise<Booking[]> {
+  return request<Booking[]>("/bookings/mine/");
+}
+
 // ── Auth ──────────────────────────────────────────────────
 
 export function loginApi(email: string, password: string): Promise<AuthTokens> {

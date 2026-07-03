@@ -1,14 +1,33 @@
-import { useState } from "react";
-import { getMyBookings } from "../services/api";
+import { useState, useEffect } from "react";
+import { getMyBookings, getMyBookingsAuth } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import type { Booking } from "../types";
 
 export default function MyBookings() {
+  const { isAuthenticated, user } = useAuth();
   const [email, setEmail] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
 
+  // ── Autenticado → auto-fetch ────────────────────────────
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+
+    setLoading(true);
+    setSearched(true);
+    setError(null);
+
+    getMyBookingsAuth()
+      .then((data) => setBookings(data))
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : "Error al cargar reservas")
+      )
+      .finally(() => setLoading(false));
+  }, [isAuthenticated, user]);
+
+  // ── Búsqueda manual por email (no autenticado) ──────────
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -59,55 +78,79 @@ export default function MyBookings() {
     return map[status] || status;
   };
 
+  // ── Loading state ────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="container py-5 text-center">
+        <div className="spinner-border text-accent" role="status">
+          <span className="visually-hidden">Cargando...</span>
+        </div>
+        <p className="mt-2 text-secondary">Cargando tus reservas…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="container py-4">
       <h2 className="section-title mb-4">Mis Reservas</h2>
 
-      <div className="card p-4 mb-4">
-        <form onSubmit={handleSearch}>
-          <div className="row align-items-end g-3">
-            <div className="col-12 col-sm-8 col-md-9">
-              <label htmlFor="booking-email" className="form-label">
-                Correo electrónico
-              </label>
-              <input
-                type="email"
-                id="booking-email"
-                className="form-control"
-                placeholder="tu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+      {/* ── Formulario email (solo si NO está autenticado) ── */}
+      {!isAuthenticated && (
+        <div className="card p-4 mb-4">
+          <form onSubmit={handleSearch}>
+            <div className="row align-items-end g-3">
+              <div className="col-12 col-sm-8 col-md-9">
+                <label htmlFor="booking-email" className="form-label">
+                  Correo electrónico
+                </label>
+                <input
+                  type="email"
+                  id="booking-email"
+                  className="form-control"
+                  placeholder="tu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="col-12 col-sm-4 col-md-3">
+                <button
+                  type="submit"
+                  className="btn btn-accent w-100"
+                  disabled={loading}
+                >
+                  Buscar
+                </button>
+              </div>
             </div>
-            <div className="col-12 col-sm-4 col-md-3">
-              <button
-                type="submit"
-                className="btn btn-accent w-100"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2"></span>
-                    Buscando...
-                  </>
-                ) : (
-                  "Buscar"
-                )}
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      {searched && !loading && !error && bookings.length === 0 && (
-        <div className="alert alert-secondary text-center">
-          No se encontraron reservas para <strong>{email}</strong>.
+          </form>
         </div>
       )}
 
+      {/* ── Info del usuario autenticado ── */}
+      {isAuthenticated && user && (
+        <p className="text-secondary small mb-3">
+          Mostrando reservas de <strong>{user.email}</strong>
+        </p>
+      )}
+
+      {/* ── Error ── */}
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      {/* ── Vacío ── */}
+      {searched && !loading && !error && bookings.length === 0 && (
+        <div className="alert alert-secondary text-center">
+          No se encontraron reservas
+          {isAuthenticated && user ? (
+            <> para <strong>{user.email}</strong></>
+          ) : email ? (
+            <> para <strong>{email}</strong></>
+          ) : null}
+          .
+        </div>
+      )}
+
+      {/* ── Lista de reservas ── */}
       {bookings.length > 0 && (
         <div className="row g-3">
           {bookings.map((booking) => (
