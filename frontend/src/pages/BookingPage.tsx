@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getShowtimeDetail, createBooking } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import SeatPicker from "../components/SeatPicker";
 import type { Showtime, CreateBookingPayload } from "../types";
 
 export default function BookingPage() {
   const { showtimeId } = useParams<{ showtimeId: string }>();
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
 
   const [showtime, setShowtime] = useState<Showtime | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,7 +49,10 @@ export default function BookingPage() {
     e.preventDefault();
     setSubmitError(null);
 
-    if (!email.trim()) {
+    // Resolver email: autenticado → user.email, sino → campo manual
+    const userEmail = isAuthenticated && user ? user.email : email.trim();
+
+    if (!userEmail) {
       setSubmitError("Ingresa tu correo electrónico.");
       return;
     }
@@ -59,7 +64,7 @@ export default function BookingPage() {
 
     const payload: CreateBookingPayload = {
       showtime_id: parseInt(showtimeId, 10),
-      user_email: email.trim(),
+      user_email: userEmail,
       seats: selectedSeats,
     };
 
@@ -91,6 +96,8 @@ export default function BookingPage() {
       day: "numeric",
     });
 
+  const resolvedEmail = isAuthenticated && user ? user.email : email;
+
   if (loading) {
     return (
       <div className="container py-5 text-center">
@@ -120,7 +127,7 @@ export default function BookingPage() {
           </div>
           <h2>¡Reserva confirmada!</h2>
           <p className="text-secondary">
-            Se ha enviado un resumen a <strong>{email}</strong>.
+            Se ha enviado un resumen a <strong>{resolvedEmail}</strong>.
           </p>
           <div className="mb-3">
             <strong>Asientos:</strong> {selectedSeats.join(", ")}
@@ -177,20 +184,30 @@ export default function BookingPage() {
             <h5 className="mb-3">Resumen de compra</h5>
 
             <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label htmlFor="email" className="form-label">
-                  Correo electrónico
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  className="form-control"
-                  placeholder="tu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
+              {/* ── Email: si autenticado → info fija; sino → campo ── */}
+              {isAuthenticated && user ? (
+                <div className="mb-3">
+                  <label className="form-label">Cuenta</label>
+                  <p className="text-secondary small mb-0">
+                    Reservando como <strong>{user.email}</strong>
+                  </p>
+                </div>
+              ) : (
+                <div className="mb-3">
+                  <label htmlFor="email" className="form-label">
+                    Correo electrónico
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    className="form-control"
+                    placeholder="tu@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
 
               <div className="mb-3">
                 <label className="form-label">Asientos seleccionados</label>
