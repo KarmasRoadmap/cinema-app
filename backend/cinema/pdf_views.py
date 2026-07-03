@@ -1,5 +1,4 @@
 """PDF generation endpoints — ticket download and admin reports."""
-import base64
 import io
 from datetime import datetime
 
@@ -143,30 +142,35 @@ def _build_ticket_pdf(booking) -> io.BytesIO:
     x = 15 * mm
     qr_size = 28 * mm
     for seat in booking.seats.all():
-        if seat.qr_code and x + qr_size > w:
+        if x + qr_size > w:
             x = 15 * mm
             y -= qr_size + 5 * mm
 
         try:
-            qr_bytes = base64.b64decode(seat.qr_code)
-            from reportlab.graphics.shapes import Drawing
-            # Render SVG inline as image - use a simple approach
-            from io import BytesIO
-            from PIL import Image as PILImage
+            # Generate fresh QR PNG from booking data
             import qrcode as qrlib
-            qr_img = qrlib.make(seat.qr_code if len(seat.qr_code) < 100 else f"CINEMA|BK{booking.id}|{seat.seat_label}")
-            qr_img_bytes = BytesIO()
-            qr_img.save(qr_img_bytes, format="PNG")
-            qr_img_bytes.seek(0)
-            c.drawImage(qr_img_bytes, x, y, qr_size, qr_size)
-        except Exception:
-            pass
+            from io import BytesIO
+
+            qr_data = f"UPAPOLIS|BK{booking.id}|{seat.seat_label}"
+            qr_img = qrlib.make(qr_data, box_size=4, border=2)
+            buf = BytesIO()
+            qr_img.save(buf, format="PNG")
+            buf.seek(0)
+            c.drawImage(buf, x, y, qr_size, qr_size)
+        except Exception as e:
+            # Fallback: draw a placeholder rectangle
+            c.setStrokeColor(colors.grey)
+            c.setFillColor(colors.HexColor("#f0f0f0"))
+            c.rect(x, y, qr_size, qr_size, fill=1, stroke=1)
+            c.setFillColor(colors.grey)
+            c.setFont("Helvetica", 6)
+            c.drawCentredString(x + qr_size / 2, y + qr_size / 2 - 3, "QR ERROR")
 
         # Seat label below QR
-        if x + qr_size <= w + 5:
-            c.setFont("Helvetica", 7)
-            c.drawCentredString(x + qr_size / 2, y - 5, seat.seat_label)
-            x += qr_size + 5 * mm
+        c.setFont("Helvetica", 7)
+        c.setFillColor(colors.black)
+        c.drawCentredString(x + qr_size / 2, y - 5, seat.seat_label)
+        x += qr_size + 5 * mm
 
     # Footer
     c.setFont("Helvetica", 7)
