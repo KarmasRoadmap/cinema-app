@@ -148,7 +148,7 @@ def update_me(request, payload: UserUpdateInput):
     return user
 
 
-@user_router.post("/change-password", response={200: dict}, auth=JWTAuth(), url_name="change_password")
+@user_router.post("/change-password", auth=JWTAuth(), url_name="change_password")
 def change_password(request, payload: PasswordChangeInput):
     """Change the authenticated user's password."""
     user = request.user
