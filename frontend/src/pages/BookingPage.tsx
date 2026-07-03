@@ -126,8 +126,8 @@ export default function BookingPage() {
 
   // ── Success: show QR + booking details ───────────────
   if (successBooking) {
-    const total = successBooking.total ?? (selectedSeats.length * Number(showtime.price));
-    const discount = successBooking.discount ?? 0;
+    const total = Number(successBooking.total ?? (selectedSeats.length * Number(showtime.price)));
+    const discount = Number(successBooking.discount ?? 0);
 
     return (
       <div className="container py-5">
