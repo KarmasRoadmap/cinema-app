@@ -71,6 +71,13 @@ DATABASES = {
     }
 }
 
+# Override with DATABASE_URL if present (Vercel / Neon)
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    import dj_database_url
+    DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql'
+
 AUTH_PASSWORD_VALIDATORS = []
 
 LANGUAGE_CODE = 'es-mx'
@@ -79,6 +86,11 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Whitenoise for static files on Vercel
+MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -95,8 +107,11 @@ TMDB_API_KEY = os.environ.get('TMDB_API_KEY', '')
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
+    'https://upapolis.vercel.app',
+    'https://upapolis-git-main-karmas-projects.vercel.app',
 ]
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL', '').lower() in ('true', '1')
 
 # DRF
 REST_FRAMEWORK = {

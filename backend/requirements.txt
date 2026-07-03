@@ -9,3 +9,5 @@ PyJWT>=2.8.0
 qrcode>=7.4
 pillow>=10.0
 reportlab>=4.0
+dj-database-url>=2.0
+whitenoise>=6.0
