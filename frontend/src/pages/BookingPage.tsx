@@ -113,8 +113,8 @@ export default function BookingPage() {
     setSubmitting(true);
     try {
       const booking = await createBooking(payload);
-      // Save card if user opted in and entered new card
-      if (saveCardInfo && cardNumber && cardHolder.trim()) {
+      // Save card if user opted in (only for new cards, not saved card)
+      if (saveCardInfo && !isUsingSavedCard && cardNumber && cardHolder.trim()) {
         const last4 = cardNumber.replace(/\D/g, "").slice(-4);
         try { await saveCard(last4, cardHolder.trim()); } catch {}
       }

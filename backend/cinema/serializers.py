@@ -65,18 +65,12 @@ class BookingCreateSerializer(serializers.ModelSerializer):
     def validate_card_number(self, value):
         if not value:
             return ""  # Optional when using saved card
-        digits = ''.join(filter(str.isdigit, value))
-        if len(digits) != 16:
-            raise serializers.ValidationError('El número de tarjeta debe tener 16 dígitos.')
-        return digits[-4:]
+        return value  # Validation moved to validate()
 
     def validate_card_expiry(self, value):
         if not value:
             return ""
-        import re
-        if not re.match(r'^\d{2}/\d{2}$', value):
-            raise serializers.ValidationError('Formato: MM/AA')
-        return value
+        return value  # Validation moved to validate()
 
     def validate_card_cvv(self, value):
         if not value.isdigit() or len(value) not in (3, 4):
@@ -105,6 +99,27 @@ class BookingCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'seats': f'La sala solo tiene {showtime.theater.capacity} asientos.'
             })
+
+        # Card validation: skip if using saved card
+        if not data.get('use_saved_card'):
+            card_number = data.get('card_number', '')
+            if not card_number:
+                raise serializers.ValidationError({
+                    'card_number': 'El número de tarjeta es requerido.'
+                })
+            digits = ''.join(filter(str.isdigit, card_number))
+            if len(digits) != 16:
+                raise serializers.ValidationError({
+                    'card_number': 'El número de tarjeta debe tener 16 dígitos.'
+                })
+            data['card_number'] = digits[-4:]
+
+            import re
+            card_expiry = data.get('card_expiry', '')
+            if not re.match(r'^\d{2}/\d{2}$', card_expiry):
+                raise serializers.ValidationError({
+                    'card_expiry': 'Formato: MM/AA'
+                })
 
         return data
 
