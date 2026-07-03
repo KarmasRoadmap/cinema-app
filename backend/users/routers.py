@@ -130,13 +130,29 @@ def me(request):
 def update_me(request, payload: UserUpdateInput):
     """Update the authenticated user's profile."""
     user = request.user
+    changed = False
+    update_fields = []
+
     if payload.name is not None:
         user.name = payload.name
+        update_fields.append("name")
+        changed = True
     if payload.has_membership is not None:
         user.has_membership = payload.has_membership
-    user.save(update_fields=[f for f in ['name', 'has_membership', 'updated_at'] if payload.name is not None or payload.has_membership is not None])
+        update_fields.append("has_membership")
+        changed = True
+    if payload.saved_card_last4 is not None:
+        user.saved_card_last4 = payload.saved_card_last4
+        update_fields.append("saved_card_last4")
+        changed = True
+    if payload.saved_card_holder is not None:
+        user.saved_card_holder = payload.saved_card_holder
+        update_fields.append("saved_card_holder")
+        changed = True
 
-    if payload.name is not None or payload.has_membership is not None:
+    if changed:
+        update_fields.append("updated_at")
+        user.save(update_fields=update_fields)
         log_audit_event(
             user=user,
             action="user_updated_profile",

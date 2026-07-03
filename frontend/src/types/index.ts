@@ -84,6 +84,8 @@ export interface UserProfile {
   role: string;
   is_active: boolean;
   has_membership: boolean;
+  saved_card_last4: string;
+  saved_card_holder: string;
   created_at: string;
   updated_at: string;
 }

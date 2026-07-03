@@ -39,6 +39,8 @@ class UserOut(Schema):
     role: str
     is_active: bool
     has_membership: bool
+    saved_card_last4: str
+    saved_card_holder: str
     created_at: datetime
     updated_at: datetime
 
@@ -46,6 +48,8 @@ class UserOut(Schema):
 class UserUpdateInput(Schema):
     name: Optional[str] = None
     has_membership: Optional[bool] = None
+    saved_card_last4: Optional[str] = None
+    saved_card_holder: Optional[str] = None
 
 
 class PasswordChangeInput(Schema):

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getShowtimeDetail, createBooking, downloadTicketPdf } from "../services/api";
+import { getShowtimeDetail, createBooking, downloadTicketPdf, saveCard } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import SeatPicker from "../components/SeatPicker";
 import type { Showtime, Booking } from "../types";
@@ -25,6 +25,7 @@ export default function BookingPage() {
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
+  const [saveCardInfo, setSaveCardInfo] = useState(false);
 
   // Submission state
   const [submitting, setSubmitting] = useState(false);
@@ -46,6 +47,13 @@ export default function BookingPage() {
   // Pre-fill membership if user has it
   useEffect(() => {
     if (user?.has_membership) setHasMembership(true);
+  }, [user]);
+
+  // Pre-fill saved card
+  useEffect(() => {
+    if (user?.saved_card_last4 && user?.saved_card_holder) {
+      setCardHolder(user.saved_card_holder);
+    }
   }, [user]);
 
   const handleToggleSeat = (seat: string) => {
@@ -86,6 +94,11 @@ export default function BookingPage() {
     setSubmitting(true);
     try {
       const booking = await createBooking(payload);
+      // Save card if user opted in and entered new card
+      if (saveCardInfo && cardNumber && cardHolder.trim()) {
+        const last4 = cardNumber.replace(/\D/g, "").slice(-4);
+        try { await saveCard(last4, cardHolder.trim()); } catch {}
+      }
       setSuccessBooking(booking);
     } catch (err) {
       setSubmitError(
@@ -333,6 +346,11 @@ export default function BookingPage() {
                 <label className="form-label small text-secondary">
                   Datos de pago
                 </label>
+                {user?.saved_card_last4 && (
+                  <div className="alert alert-success py-1 px-2 mb-2 small d-flex align-items-center gap-2">
+                    💳 Tarjeta guardada: **** {user.saved_card_last4}
+                  </div>
+                )}
                 <input
                   type="text"
                   className="form-control mb-2"
@@ -383,6 +401,18 @@ export default function BookingPage() {
                       }}
                     />
                   </div>
+                </div>
+                <div className="form-check mt-2">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="save-card"
+                    checked={saveCardInfo}
+                    onChange={(e) => setSaveCardInfo(e.target.checked)}
+                  />
+                  <label className="form-check-label small text-secondary" htmlFor="save-card">
+                    Guardar tarjeta para futuras compras
+                  </label>
                 </div>
               </div>
 

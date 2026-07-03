@@ -150,6 +150,19 @@ export function changePassword(
   });
 }
 
+export function saveCard(
+  last4: string,
+  holder: string
+): Promise<UserProfile> {
+  return request<UserProfile>("/users/me", {
+    method: "PUT",
+    body: JSON.stringify({
+      saved_card_last4: last4,
+      saved_card_holder: holder,
+    }),
+  });
+}
+
 // ── Admin ─────────────────────────────────────────────────
 
 export function getAdminUsers(params?: {

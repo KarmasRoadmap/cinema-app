@@ -47,6 +47,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     has_membership = models.BooleanField(default=False)
+    saved_card_last4 = models.CharField(max_length=4, blank=True, default='')
+    saved_card_holder = models.CharField(max_length=100, blank=True, default='')
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
