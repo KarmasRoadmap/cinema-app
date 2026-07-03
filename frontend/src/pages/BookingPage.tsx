@@ -79,7 +79,7 @@ export default function BookingPage() {
       has_membership: hasMembership,
       card_holder: cardHolder.trim(),
       card_number: cardNumber.replace(/\s/g, ""),
-      card_expiry: cardExpiry.replace(/\//g, ""),
+      card_expiry: cardExpiry.trim(),
       card_cvv: cardCvv.trim(),
     };
 
