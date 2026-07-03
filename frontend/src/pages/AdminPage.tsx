@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { getAdminUsers, getAdminUserBookings } from "../services/api";
+import { getAdminUserBookings } from "../services/api";
 import type { UserProfile, AdminBooking } from "../types";
 
 const BASE_URL =
@@ -23,6 +23,13 @@ export default function AdminPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
+  // ── Debounce search ──────────────────────────────────
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   // ── Expanded user → bookings ─────────────────────────
   const [expandedUserId, setExpandedUserId] = useState<number | null>(null);
   const [userBookings, setUserBookings] = useState<Map<number, AdminBooking[]>>(
@@ -42,12 +49,12 @@ export default function AdminPage() {
     }
   }, [isAuthenticated, token, user, navigate]);
 
-  // ── Fetch users (with debounced filters) ─────────────
+  // ── Fetch users ──────────────────────────────────────
   const fetchUsers = useCallback(async () => {
     if (!token) return;
 
     const params: Record<string, string | undefined> = {};
-    if (search.trim()) params.search = search.trim();
+    if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
     if (roleFilter) params.role = roleFilter;
     if (activeFilter !== "") params.is_active = activeFilter === "true" ? "true" : "false";
     if (dateFrom) params.date_from = dateFrom;
@@ -57,7 +64,6 @@ export default function AdminPage() {
     setError("");
 
     try {
-      // Build query string manually since getAdminUsers expects typed params
       const qs = new URLSearchParams();
       Object.entries(params).forEach(([k, v]) => {
         if (v !== undefined) qs.set(k, v);
@@ -73,13 +79,11 @@ export default function AdminPage() {
       const data = (await res.json()) as UserProfile[];
       setUsers(data);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Error al cargar usuarios"
-      );
+      setError(err instanceof Error ? err.message : "Error al cargar usuarios");
     } finally {
       setLoading(false);
     }
-  }, [token, search, roleFilter, activeFilter, dateFrom, dateTo]);
+  }, [token, debouncedSearch, roleFilter, activeFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     if (token && isAuthenticated && user?.role === "admin") {
@@ -93,10 +97,7 @@ export default function AdminPage() {
       setExpandedUserId(null);
       return;
     }
-
     setExpandedUserId(userId);
-
-    // Already cached?
     if (userBookings.has(userId)) return;
 
     setBookingsLoading((prev) => new Set(prev).add(userId));
@@ -147,6 +148,11 @@ export default function AdminPage() {
     );
   }
 
+  // Stats
+  const adminCount = users.filter((u) => u.role === "admin").length;
+  const userCount = users.filter((u) => u.role === "user").length;
+  const activeCount = users.filter((u) => u.is_active).length;
+
   return (
     <div className="container py-4">
       <h2 className="section-title mb-4">Panel de Administración</h2>
@@ -167,9 +173,7 @@ export default function AdminPage() {
             />
           </div>
           <div className="col-6 col-md-2">
-            <label className="form-label small text-secondary mb-1">
-              Rol
-            </label>
+            <label className="form-label small text-secondary mb-1">Rol</label>
             <select
               className="form-select"
               value={roleFilter}
@@ -233,19 +237,19 @@ export default function AdminPage() {
         <div className="col-6 col-md-3">
           <div className="card p-2 text-center">
             <small className="text-secondary">Admins</small>
-            <strong>{users.filter((u) => u.role === "admin").length}</strong>
+            <strong>{adminCount}</strong>
           </div>
         </div>
         <div className="col-6 col-md-3">
           <div className="card p-2 text-center">
             <small className="text-secondary">Usuarios</small>
-            <strong>{users.filter((u) => u.role === "user").length}</strong>
+            <strong>{userCount}</strong>
           </div>
         </div>
         <div className="col-6 col-md-3">
           <div className="card p-2 text-center">
             <small className="text-secondary">Activos</small>
-            <strong>{users.filter((u) => u.is_active).length}</strong>
+            <strong>{activeCount}</strong>
           </div>
         </div>
       </div>
@@ -258,10 +262,10 @@ export default function AdminPage() {
       ) : (
         <div className="card">
           <div className="table-responsive">
-            <table className="table table-dark table-hover mb-0">
+            <table className="table table-dark table-hover mb-0 align-middle">
               <thead>
                 <tr>
-                  <th style={{ width: "40px" }}></th>
+                  <th style={{ width: "36px" }}></th>
                   <th>Email</th>
                   <th>Nombre</th>
                   <th>Rol</th>
@@ -276,71 +280,70 @@ export default function AdminPage() {
                   const isLoadingBookings = bookingsLoading.has(u.id);
 
                   return (
-                    <tr key={u.id}>
-                      <td colSpan={6} className="p-0">
-                        {/* Main row */}
-                        <table className="table table-dark table-hover mb-0 w-100">
-                          <tbody>
-                            <tr
-                              onClick={() => toggleUser(u.id)}
-                              style={{ cursor: "pointer" }}
-                              className={isExpanded ? "table-active" : ""}
-                            >
-                              <td style={{ width: "40px" }}>
-                                <span
-                                  style={{
-                                    display: "inline-block",
-                                    transition: "transform 0.2s",
-                                    transform: isExpanded
-                                      ? "rotate(90deg)"
-                                      : "rotate(0deg)",
-                                  }}
-                                >
-                                  ▶
-                                </span>
-                              </td>
-                              <td>
-                                <strong>{u.email}</strong>
-                              </td>
-                              <td>{u.name || "—"}</td>
-                              <td>
-                                <span
-                                  className={`badge ${
-                                    u.role === "admin"
-                                      ? ""
-                                      : "bg-secondary"
-                                  }`}
-                                  style={
-                                    u.role === "admin"
-                                      ? { backgroundColor: "var(--accent)" }
-                                      : undefined
-                                  }
-                                >
-                                  {u.role}
-                                </span>
-                              </td>
-                              <td>
-                                <span
-                                  className={`badge ${
-                                    u.is_active ? "bg-success" : "bg-danger"
-                                  }`}
-                                >
-                                  {u.is_active ? "Sí" : "No"}
-                                </span>
-                              </td>
-                              <td>{formatDate(u.created_at)}</td>
-                            </tr>
-                          </tbody>
-                        </table>
+                    <Fragment key={u.id}>
+                      {/* ── User row ── */}
+                      <tr
+                        onClick={() => toggleUser(u.id)}
+                        style={{ cursor: "pointer" }}
+                        className={isExpanded ? "table-active" : ""}
+                      >
+                        <td>
+                          <span
+                            style={{
+                              display: "inline-block",
+                              transition: "transform 0.2s",
+                              transform: isExpanded
+                                ? "rotate(90deg)"
+                                : "rotate(0deg)",
+                            }}
+                          >
+                            ▶
+                          </span>
+                        </td>
+                        <td>
+                          <strong>{u.email}</strong>
+                        </td>
+                        <td>{u.name || "—"}</td>
+                        <td>
+                          <span
+                            className={`badge ${
+                              u.role === "admin" ? "" : "bg-secondary"
+                            }`}
+                            style={
+                              u.role === "admin"
+                                ? { backgroundColor: "var(--accent)" }
+                                : undefined
+                            }
+                          >
+                            {u.role}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={`badge ${
+                              u.is_active ? "bg-success" : "bg-danger"
+                            }`}
+                          >
+                            {u.is_active ? "Sí" : "No"}
+                          </span>
+                        </td>
+                        <td>{formatDate(u.created_at)}</td>
+                      </tr>
 
-                        {/* Expanded: bookings panel */}
-                        {isExpanded && (
-                          <div className="px-4 pb-3">
+                      {/* ── Expanded bookings row ── */}
+                      {isExpanded && (
+                        <tr key={`${u.id}-expanded`}>
+                          <td colSpan={6} className="p-0 border-0">
                             <div
-                              className="rounded p-3"
-                              style={{ backgroundColor: "rgba(255,255,255,0.03)" }}
+                              className="px-4 py-3"
+                              style={{
+                                backgroundColor: "rgba(255,255,255,0.02)",
+                              }}
                             >
-                              <h6 className="mb-3" style={{ color: "var(--accent)" }}>
+                              <h6
+                                className="mb-3"
+                                style={{ color: "var(--accent)" }}
+                              >
                                 Reservas de {u.name || u.email}
                               </h6>
 
@@ -406,10 +409,10 @@ export default function AdminPage() {
                                 </p>
                               )}
                             </div>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>
