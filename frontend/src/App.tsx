@@ -31,7 +31,7 @@ export default function App() {
           <footer className="app-footer">
             <div className="container text-center py-3">
               <small className="text-secondary">
-                © {new Date().getFullYear()} CINEMA — Todos los derechos reservados
+                © {new Date().getFullYear()} UPAPOLIS — Todos los derechos reservados
               </small>
             </div>
           </footer>

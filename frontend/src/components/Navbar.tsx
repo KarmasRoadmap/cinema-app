@@ -20,7 +20,7 @@ export default function Navbar() {
     <nav className="navbar navbar-expand-lg">
       <div className="container">
         <Link className="navbar-brand" to="/">
-          <span className="brand-text">CINEMA</span>
+          <span className="brand-text">UPAPOLIS</span>
         </Link>
 
         <button

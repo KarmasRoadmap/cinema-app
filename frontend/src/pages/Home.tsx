@@ -64,7 +64,7 @@ export default function Home() {
       {/* Hero Banner */}
       <section className="hero-banner">
         <div className="container text-center py-5">
-          <h1 className="hero-title display-4 fw-bold">CINEMA</h1>
+          <h1 className="hero-title display-4 fw-bold">UPAPOLIS</h1>
           <p className="hero-subtitle lead">
             Las mejores películas, la mejor experiencia
           </p>
