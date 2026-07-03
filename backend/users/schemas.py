@@ -58,3 +58,21 @@ class AdminUpdateUserInput(Schema):
     role: Optional[str] = None
     is_active: Optional[bool] = None
     password: Optional[str] = None
+
+
+# ── Admin: bookings ──────────────────────────────────────────────────────────
+class AdminSeatOut(Schema):
+    id: int
+    seat_label: str
+
+
+class AdminBookingOut(Schema):
+    id: int
+    showtime_id: int
+    movie_title: str
+    theater_name: str
+    start_time: datetime
+    user_email: str
+    status: str
+    seats: list[AdminSeatOut]
+    created_at: datetime

@@ -1,4 +1,4 @@
-import type { Movie, Showtime, Booking, CreateBookingPayload, TMDBSearchResult, AuthTokens, UserProfile } from "../types";
+import type { Movie, Showtime, Booking, CreateBookingPayload, TMDBSearchResult, AuthTokens, UserProfile, AdminBooking } from "../types";
 
 const BASE_URL: string =
   (import.meta.env.VITE_API_URL as string) || "http://localhost:8000/api";
@@ -130,4 +130,27 @@ export function registerApi(
 
 export function getMe(): Promise<UserProfile> {
   return request<UserProfile>("/users/me");
+}
+
+// ── Admin ─────────────────────────────────────────────────
+
+export function getAdminUsers(params?: {
+  search?: string;
+  role?: string;
+  is_active?: boolean;
+  date_from?: string;
+  date_to?: string;
+}): Promise<UserProfile[]> {
+  const qs = new URLSearchParams();
+  if (params?.search) qs.set("search", params.search);
+  if (params?.role) qs.set("role", params.role);
+  if (params?.is_active !== undefined) qs.set("is_active", String(params.is_active));
+  if (params?.date_from) qs.set("date_from", params.date_from);
+  if (params?.date_to) qs.set("date_to", params.date_to);
+  const query = qs.toString();
+  return request<UserProfile[]>(`/users/${query ? `?${query}` : ""}`);
+}
+
+export function getAdminUserBookings(userId: number): Promise<AdminBooking[]> {
+  return request<AdminBooking[]>(`/users/${userId}/bookings`);
 }

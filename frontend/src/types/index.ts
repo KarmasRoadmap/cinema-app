@@ -81,3 +81,22 @@ export interface AuthTokens {
   user_id: number;
   email: string;
 }
+
+// ── Admin ─────────────────────────────────────────────────
+
+export interface AdminSeat {
+  id: number;
+  seat_label: string;
+}
+
+export interface AdminBooking {
+  id: number;
+  showtime_id: number;
+  movie_title: string;
+  theater_name: string;
+  start_time: string;
+  user_email: string;
+  status: string;
+  seats: AdminSeat[];
+  created_at: string;
+}
