@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd frontend && npm install && npm run build && cd ../backend && pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate",
+  "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
   "functions": {
     "api/index.py": {
@@ -19,10 +19,6 @@
     },
     {
       "src": "/static/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/media/(.*)",
       "dest": "/api/index.py"
     },
     {
