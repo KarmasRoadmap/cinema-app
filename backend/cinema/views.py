@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
+import django_filters
 
 from .models import Movie, Theater, Showtime, Booking
 from .serializers import (
@@ -96,18 +97,20 @@ class TheaterViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TheaterSerializer
 
 
+class ShowtimeFilter(django_filters.FilterSet):
+    movie_id = django_filters.NumberFilter(field_name='movie_id')
+    date = django_filters.DateFilter(field_name='start_time__date')
+
+    class Meta:
+        model = Showtime
+        fields = ['movie_id', 'date']
+
+
 class ShowtimeViewSet(viewsets.ReadOnlyModelViewSet):
     """GET /api/showtimes/ — filtra por ?movie_id=&date="""
     queryset = Showtime.objects.select_related('movie', 'theater').all()
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['movie_id']
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        date_param = self.request.query_params.get('date')
-        if date_param:
-            qs = qs.filter(start_time__date=date_param)
-        return qs
+    filterset_class = ShowtimeFilter
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
