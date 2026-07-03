@@ -89,3 +89,23 @@ class Command(BaseCommand):
             f"   Frontend: http://localhost:5173\n"
             f"   API:      http://localhost:8000/api/movies/"
         ))
+
+        # ── Create initial admin user ──────────────────────────────────
+        from users.models import User
+
+        admin_email = "admin@cinema.com"
+        admin_password = "admin123"
+
+        if not User.objects.filter(email=admin_email).exists():
+            User.objects.create_superuser(
+                email=admin_email,
+                password=admin_password,
+                name="Admin",
+            )
+            self.stdout.write(self.style.SUCCESS(
+                f"\n👤 Admin user created:\n"
+                f"   Email:    {admin_email}\n"
+                f"   Password: {admin_password}"
+            ))
+        else:
+            self.stdout.write(f"\n👤 Admin user already exists: {admin_email}")

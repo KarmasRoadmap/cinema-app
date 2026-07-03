@@ -25,6 +25,8 @@ INSTALLED_APPS = [
     'django_filters',
     # Local
     'cinema',
+    'users',
+    'audit',
 ]
 
 MIDDLEWARE = [
@@ -79,6 +81,12 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ── Auth ─────────────────────────────────────────────────────────────────
+AUTH_USER_MODEL = 'users.User'
+
+# ── JWT ──────────────────────────────────────────────────────────────────
+JWT_ACCESS_TOKEN_LIFETIME_HOURS = 24
 
 # OMDb
 OMDB_API_KEY = os.environ.get('OMDB_API_KEY', '')

@@ -1,0 +1,60 @@
+"""
+Pydantic schemas for user / auth endpoints (Django Ninja).
+"""
+from datetime import datetime
+from typing import Optional
+
+from ninja import Schema
+
+
+# ── Auth ────────────────────────────────────────────────────────────────────
+class RegisterInput(Schema):
+    email: str
+    password: str
+    name: str = ""
+    role: str = "user"
+
+
+class LoginInput(Schema):
+    email: str
+    password: str
+
+
+class TokenResponse(Schema):
+    access: str
+    refresh: str
+    user_id: int
+    email: str
+
+
+class RefreshInput(Schema):
+    refresh: str
+
+
+# ── User profile ────────────────────────────────────────────────────────────
+class UserOut(Schema):
+    id: int
+    email: str
+    name: str
+    role: str
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class UserUpdateInput(Schema):
+    name: Optional[str] = None
+
+
+class PasswordChangeInput(Schema):
+    old_password: str
+    new_password: str
+
+
+# ── Admin ────────────────────────────────────────────────────────────────────
+class AdminUpdateUserInput(Schema):
+    email: Optional[str] = None
+    name: Optional[str] = None
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
+    password: Optional[str] = None
