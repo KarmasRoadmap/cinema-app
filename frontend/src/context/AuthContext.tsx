@@ -45,7 +45,7 @@ function removeStoredToken(): void {
 }
 
 const BASE_URL =
-  (import.meta.env.VITE_API_URL as string) || "http://localhost:8000/api";
+  (import.meta.env.VITE_API_URL as string) || "/api";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(getStoredToken);

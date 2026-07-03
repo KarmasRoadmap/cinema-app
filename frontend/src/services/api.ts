@@ -1,7 +1,7 @@
 import type { Movie, Showtime, Booking, CreateBookingPayload, TMDBSearchResult, AuthTokens, UserProfile, AdminBooking, DashboardStats } from "../types";
 
 const BASE_URL: string =
-  (import.meta.env.VITE_API_URL as string) || "http://localhost:8000/api";
+  (import.meta.env.VITE_API_URL as string) || "/api";
 
 function getToken(): string | null {
   try {
